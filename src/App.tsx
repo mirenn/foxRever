@@ -1,0 +1,290 @@
+import { useState, useEffect, useCallback } from 'react';
+import { GameState, GAME_CONFIG } from './types';
+import {
+    createInitialState,
+    placePrisoner,
+    tickTime,
+    spawnPrisoner,
+    checkWerewolfEscape,
+    repairRoom,
+    roomHasIncompatiblePair,
+} from './gameLogic';
+
+function App() {
+    const [gameState, setGameState] = useState<GameState>(createInitialState);
+    const [selectedPrisonerId, setSelectedPrisonerId] = useState<string | null>(null);
+    const [spawnTimer, setSpawnTimer] = useState(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
+    const [repairMode, setRepairMode] = useState(false);
+
+    // ゲームループ（1秒ごと）
+    useEffect(() => {
+        if (gameState.isGameOver || gameState.isVictory) return;
+
+        const interval = setInterval(() => {
+            setGameState(prev => tickTime(prev));
+            setSpawnTimer(prev => {
+                if (prev <= 1) {
+                    setGameState(prevState => spawnPrisoner(prevState));
+                    return GAME_CONFIG.PRISONER_SPAWN_INTERVAL;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [gameState.isGameOver, gameState.isVictory]);
+
+    // 夜になった瞬間に狼男チェック
+    useEffect(() => {
+        if (gameState.timeOfDay === 'night' && !gameState.isGameOver) {
+            setGameState(prev => checkWerewolfEscape(prev));
+        }
+    }, [gameState.timeOfDay, gameState.isGameOver]);
+
+    // 部屋クリック処理
+    const handleRoomClick = useCallback((roomId: number) => {
+        if (repairMode) {
+            // 修理モード
+            setGameState(prev => repairRoom(prev, roomId));
+            setRepairMode(false);
+        } else if (selectedPrisonerId) {
+            // 配置モード
+            setGameState(prev => placePrisoner(prev, selectedPrisonerId, roomId));
+            setSelectedPrisonerId(null);
+        }
+    }, [selectedPrisonerId, repairMode]);
+
+    // 囚人を選択
+    const handlePrisonerClick = useCallback((prisonerId: string) => {
+        setRepairMode(false);
+        setSelectedPrisonerId(prev => prev === prisonerId ? null : prisonerId);
+    }, []);
+
+    // 修理モード切替
+    const handleRepairClick = useCallback(() => {
+        setSelectedPrisonerId(null);
+        setRepairMode(prev => !prev);
+    }, []);
+
+    // リスタート
+    const handleRestart = useCallback(() => {
+        setGameState(createInitialState());
+        setSelectedPrisonerId(null);
+        setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
+        setRepairMode(false);
+    }, []);
+
+    // 囚人アイコン取得
+    const getPrisonerIcon = (type: string) => {
+        switch (type) {
+            case 'werewolf': return '🐺';
+            case 'vampire': return '🧛';
+            case 'strong': return '💪';
+            default: return '👤';
+        }
+    };
+
+    // 囚人タイプ名取得
+    const getPrisonerTypeName = (type: string) => {
+        switch (type) {
+            case 'werewolf': return '狼男';
+            case 'vampire': return 'バンパイア';
+            case 'strong': return '力持ち';
+            default: return '普通';
+        }
+    };
+
+    // ストレスの色
+    const getStressColor = (stress: number) => {
+        if (stress >= 70) return '#e74c3c';
+        if (stress >= 40) return '#f39c12';
+        return '#27ae60';
+    };
+
+    return (
+        <div className="game-container">
+            {/* ヘッダー */}
+            <header className="game-header">
+                <h1>🏛️ 囚人管理シミュレーター</h1>
+                <div className="time-display">
+                    <span className="day">Day {gameState.day} / {GAME_CONFIG.TOTAL_DAYS}</span>
+                    <span className={`time-of-day ${gameState.timeOfDay}`}>
+                        {gameState.timeOfDay === 'day' ? '☀️ 昼' : '🌙 夜'}
+                    </span>
+                    <span className="time-remaining">
+                        残り {gameState.timeRemaining}秒
+                    </span>
+                </div>
+            </header>
+
+            {/* 修理ボタン */}
+            <div style={{ marginBottom: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+                <button
+                    onClick={handleRepairClick}
+                    style={{
+                        background: repairMode ? '#e74c3c' : 'linear-gradient(135deg, #3498db, #2980b9)',
+                        border: 'none',
+                        color: 'white',
+                        padding: '12px 24px',
+                        fontSize: '1rem',
+                        borderRadius: '8px',
+                        cursor: gameState.inspectionsRemaining > 0 ? 'pointer' : 'not-allowed',
+                        opacity: gameState.inspectionsRemaining > 0 ? 1 : 0.5,
+                    }}
+                    disabled={gameState.inspectionsRemaining <= 0}
+                >
+                    🔧 修理モード {repairMode ? '(ON)' : ''}
+                </button>
+                <span style={{ color: '#95a5a6' }}>
+                    残り修理回数: {gameState.inspectionsRemaining} / {GAME_CONFIG.REPAIRS_PER_DAY}
+                </span>
+                {repairMode && (
+                    <span style={{ color: '#f39c12' }}>
+                        ← 修理する部屋をクリック（ストレス0にリセット）
+                    </span>
+                )}
+            </div>
+
+            {/* 待機エリア */}
+            <section className="waiting-area">
+                <h2>
+                    📥 待機エリア ({gameState.waitingPrisoners.length}/{GAME_CONFIG.MAX_WAITING_PRISONERS})
+                    <span style={{ marginLeft: '20px', fontSize: '0.9rem', color: '#95a5a6' }}>
+                        次の囚人まで: {spawnTimer}秒
+                    </span>
+                </h2>
+                <div className="waiting-prisoners">
+                    {gameState.waitingPrisoners.map(prisoner => (
+                        <div
+                            key={prisoner.id}
+                            className={`prisoner-card ${prisoner.type} ${selectedPrisonerId === prisoner.id ? 'selected' : ''}`}
+                            onClick={() => handlePrisonerClick(prisoner.id)}
+                        >
+                            <div className="prisoner-icon">{getPrisonerIcon(prisoner.type)}</div>
+                            <div className="prisoner-name">{prisoner.name}</div>
+                            <div className={`prisoner-type ${prisoner.type}`}>
+                                {getPrisonerTypeName(prisoner.type)}
+                            </div>
+                        </div>
+                    ))}
+                    {gameState.waitingPrisoners.length === 0 && (
+                        <div style={{ color: '#7f8c8d', padding: '20px' }}>
+                            待機中の囚人はいません
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* 相性警告 */}
+            {selectedPrisonerId && (
+                <div style={{
+                    background: 'rgba(243, 156, 18, 0.2)',
+                    padding: '10px 15px',
+                    borderRadius: '8px',
+                    marginBottom: '15px',
+                    color: '#f39c12'
+                }}>
+                    ⚠️ 狼男🐺とバンパイア🧛を同室にするとストレスが急上昇します！
+                </div>
+            )}
+
+            {/* 部屋グリッド */}
+            <main className="prison-grid">
+                {gameState.rooms.map(room => {
+                    const maxStress = Math.max(0, ...room.prisoners.map(p => p.stress));
+                    const hasIncompatible = roomHasIncompatiblePair(room);
+
+                    return (
+                        <div
+                            key={room.id}
+                            className={`room ${room.hasMoonlight ? 'moonlight' : ''} ${room.hasMoonlight && gameState.timeOfDay === 'night' ? 'night' : ''}`}
+                            onClick={() => handleRoomClick(room.id)}
+                            style={{
+                                cursor: repairMode ? 'crosshair' : (selectedPrisonerId && room.prisoners.length < room.capacity ? 'pointer' : 'default'),
+                                border: repairMode ? '2px solid #3498db' : (hasIncompatible ? '2px solid #e74c3c' : undefined),
+                            }}
+                        >
+                            <div className="room-header">
+                                <span className="room-number">部屋 {room.id + 1}</span>
+                                {hasIncompatible && (
+                                    <span title="相性悪い組み合わせ！" style={{ color: '#e74c3c' }}>⚠️</span>
+                                )}
+                                {room.hasMoonlight && (
+                                    <span className="moonlight-indicator" title="夜に月光が差し込む">
+                                        🌙
+                                    </span>
+                                )}
+                                <span className="room-capacity">
+                                    {room.prisoners.length}/{room.capacity}
+                                </span>
+                            </div>
+
+                            {/* ストレスバー */}
+                            {room.prisoners.length > 0 && (
+                                <div style={{
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '4px',
+                                    height: '8px',
+                                    marginBottom: '10px',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        width: `${Math.min(maxStress, 100)}%`,
+                                        height: '100%',
+                                        background: getStressColor(maxStress),
+                                        transition: 'width 0.3s, background 0.3s'
+                                    }} />
+                                </div>
+                            )}
+
+                            <div className="room-prisoners">
+                                {room.prisoners.map(prisoner => (
+                                    <div key={prisoner.id} className={`prisoner-card ${prisoner.type}`}>
+                                        <div className="prisoner-icon">{getPrisonerIcon(prisoner.type)}</div>
+                                        <div className="prisoner-name">{prisoner.name}</div>
+                                        <div className={`prisoner-type ${prisoner.type}`}>
+                                            {getPrisonerTypeName(prisoner.type)}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.7rem',
+                                            color: getStressColor(prisoner.stress),
+                                            marginTop: '4px'
+                                        }}>
+                                            ストレス: {Math.min(Math.round(prisoner.stress), 100)}%
+                                        </div>
+                                    </div>
+                                ))}
+                                {room.prisoners.length === 0 && (
+                                    <div className="room-empty">
+                                        空室
+                                        {selectedPrisonerId && <div style={{ marginTop: '10px' }}>クリックで配置</div>}
+                                        {repairMode && <div style={{ marginTop: '10px', color: '#3498db' }}>修理する</div>}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </main>
+
+            {/* ゲームオーバー・勝利画面 */}
+            {(gameState.isGameOver || gameState.isVictory) && (
+                <div className="game-overlay">
+                    <div className={`game-result ${gameState.isVictory ? 'victory' : 'game-over'}`}>
+                        <h2>{gameState.isVictory ? '🎉 勝利！' : '💀 ゲームオーバー'}</h2>
+                        <p>
+                            {gameState.isVictory
+                                ? '3日間、暴動を防ぎました！'
+                                : gameState.gameOverReason}
+                        </p>
+                        <button className="restart-button" onClick={handleRestart}>
+                            🔄 もう一度プレイ
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default App;

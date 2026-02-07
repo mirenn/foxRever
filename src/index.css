@@ -1,0 +1,334 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: #e4e4e4;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ゲームコンテナ */
+.game-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ヘッダー */
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.game-header h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #f39c12, #e74c3c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 時間表示 */
+.time-display {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  font-size: 1.2rem;
+}
+
+.time-display .day {
+  color: #3498db;
+}
+
+.time-display .time-of-day {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.time-display .time-of-day.day {
+  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  color: #1a1a2e;
+}
+
+.time-display .time-of-day.night {
+  background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+  color: #9b59b6;
+  border: 2px solid #9b59b6;
+}
+
+.time-remaining {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+/* 待機エリア */
+.waiting-area {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.waiting-area h2 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #f39c12;
+}
+
+.waiting-prisoners {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  min-height: 80px;
+}
+
+/* 囚人カード */
+.prisoner-card {
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-radius: 12px;
+  padding: 15px;
+  width: 100px;
+  text-align: center;
+  cursor: grab;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.prisoner-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.prisoner-card.selected {
+  border-color: #3498db;
+  box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+}
+
+.prisoner-card.normal {
+  border-bottom: 3px solid #27ae60;
+}
+
+.prisoner-card.werewolf {
+  border-bottom: 3px solid #9b59b6;
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+}
+
+.prisoner-card.strong {
+  border-bottom: 3px solid #e74c3c;
+}
+
+.prisoner-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.prisoner-name {
+  font-size: 0.85rem;
+  color: #bdc3c7;
+}
+
+.prisoner-type {
+  font-size: 0.7rem;
+  margin-top: 5px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.prisoner-type.normal {
+  background: rgba(39, 174, 96, 0.3);
+  color: #27ae60;
+}
+
+.prisoner-type.werewolf {
+  background: rgba(155, 89, 182, 0.3);
+  color: #9b59b6;
+}
+
+.prisoner-type.strong {
+  background: rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
+}
+
+.prisoner-card.vampire {
+  border-bottom: 3px solid #c0392b;
+  background: linear-gradient(145deg, #2d3436, #1e272e);
+}
+
+.prisoner-type.vampire {
+  background: rgba(192, 57, 43, 0.3);
+  color: #c0392b;
+}
+
+/* 部屋グリッド */
+.prison-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+/* 部屋 */
+.room {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 15px;
+  min-height: 180px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.room:hover {
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.room.moonlight {
+  background: linear-gradient(145deg, rgba(155, 89, 182, 0.15), rgba(255, 255, 255, 0.05));
+}
+
+.room.moonlight.night {
+  border-color: #9b59b6;
+  box-shadow: 0 0 30px rgba(155, 89, 182, 0.3);
+  animation: moonlightGlow 2s ease-in-out infinite;
+}
+
+@keyframes moonlightGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(155, 89, 182, 0.5);
+  }
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-number {
+  font-weight: bold;
+  color: #3498db;
+}
+
+.room-capacity {
+  font-size: 0.8rem;
+  color: #95a5a6;
+}
+
+.moonlight-indicator {
+  color: #9b59b6;
+  font-size: 1.2rem;
+}
+
+.room-prisoners {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.room .prisoner-card {
+  width: 48%;
+  min-width: 80px;
+  padding: 10px 8px;
+  cursor: default;
+}
+
+.room-empty {
+  color: #7f8c8d;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+/* ゲームオーバー・勝利画面 */
+.game-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.game-result {
+  text-align: center;
+  padding: 50px;
+  border-radius: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.game-result.victory {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.game-result.game-over {
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+}
+
+.game-result h2 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.game-result p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.restart-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.restart-button:hover {
+  background: white;
+  color: #1a1a2e;
+}
