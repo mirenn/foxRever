@@ -105,7 +105,6 @@ function App() {
         <div className="game-container">
             {/* ヘッダー */}
             <header className="game-header">
-                <h1>🏛️ 囚人管理シミュレーター</h1>
                 <div className="time-display">
                     <span className="day">Day {gameState.day} / {GAME_CONFIG.TOTAL_DAYS}</span>
                     <span className={`time-of-day ${gameState.timeOfDay}`}>
