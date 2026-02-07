@@ -6,7 +6,7 @@ export interface Prisoner {
   id: string;
   type: PrisonerType;
   name: string;
-  stress: number; // ストレスゲージ（0-100）
+  escapeProgress: number; // 脱獄ゲージ（0-100）
 }
 
 // 部屋
@@ -45,14 +45,14 @@ export const GAME_CONFIG = {
   ROOM_CAPACITY: 2,
   // 月光が差す部屋（夜のみ有効）
   MOONLIGHT_ROOMS: [1, 3, 5, 7], // 0-indexed: 部屋2, 4, 6, 8
-  // ストレス関連
-  STRESS_PER_TICK: 3, // 毎秒のストレス上昇（基本）
-  STRESS_INCOMPATIBLE_BONUS: 5, // 相性悪い同室の追加ストレス
-  STRESS_THRESHOLD: 100, // この値に達すると暴動
+  // 脱獄度関連
+  ESCAPE_PER_TICK: 3, // 毎秒の脱獄度上昇（基本）
+  ESCAPE_INCOMPATIBLE_BONUS: 5, // 相性悪い同室の追加脱獄度
+  ESCAPE_THRESHOLD: 100, // この値に達すると脱獄
   REPAIRS_PER_DAY: 2, // 1日あたりの修理回数
 };
 
-// 相性悪い組み合わせ（ストレス増加）
+// 相性悪い組み合わせ（脱獄度増加）
 export const INCOMPATIBLE_PAIRS: [PrisonerType, PrisonerType][] = [
   ['werewolf', 'vampire'],
 ];

@@ -6,12 +6,25 @@ function generateId(): string {
   return `prisoner-${nextId++}`;
 }
 
-// ランダムな囚人名
-const PRISONER_NAMES = [
-  'ジャック', 'トム', 'ビル', 'マイク', 'ジョン',
-  'ボブ', 'チャーリー', 'デイブ', 'エド', 'フランク',
-  'ジョージ', 'ハリー', 'アイザック', 'ジェイク', 'カール',
-];
+// 種族別の囚人名
+const PRISONER_NAMES: Record<PrisonerType, string[]> = {
+  normal: [
+    'ジャック', 'トム', 'ビル', 'マイク', 'ジョン',
+    'ボブ', 'チャーリー', 'デイブ', 'エド', 'フランク',
+  ],
+  werewolf: [
+    'ニコラス', 'フェンリル', 'ルーカス', 'セバスチャン', 'グレイソン',
+    'ウルリッヒ', 'ヴォルフガング', 'ロムルス', 'レムス', 'ライカン',
+  ],
+  vampire: [
+    'ドラキュラ', 'ヴィクター', 'カシウス', 'アルカード', 'デミトリ',
+    'ノスフェラトゥ', 'カーミラ', 'レスタト', 'ルシアン', 'ヴラド',
+  ],
+  strong: [
+    'グロッグ', 'ブルータス', 'タイタン', 'ゴリアテ', 'アトラス',
+    'ヘラクレス', 'サムソン', 'マグナス', 'コロッサス', 'オーガ',
+  ],
+};
 
 // ランダムな囚人タイプ
 function randomPrisonerType(): PrisonerType {
@@ -25,12 +38,13 @@ function randomPrisonerType(): PrisonerType {
 // 新しい囚人を生成
 export function createPrisoner(): Prisoner {
   const type = randomPrisonerType();
-  const name = PRISONER_NAMES[Math.floor(Math.random() * PRISONER_NAMES.length)];
+  const names = PRISONER_NAMES[type];
+  const name = names[Math.floor(Math.random() * names.length)];
   return {
     id: generateId(),
     type,
     name,
-    stress: 0,
+    escapeProgress: 0,
   };
 }
 
@@ -132,15 +146,15 @@ export function checkWerewolfEscape(state: GameState): GameState {
   return state;
 }
 
-// ストレスチェック（暴動）
-export function checkStressOverflow(state: GameState): GameState {
+// 脱獄チェック
+export function checkEscapeOverflow(state: GameState): GameState {
   for (const room of state.rooms) {
     for (const prisoner of room.prisoners) {
-      if (prisoner.stress >= GAME_CONFIG.STRESS_THRESHOLD) {
+      if (prisoner.escapeProgress >= GAME_CONFIG.ESCAPE_THRESHOLD) {
         return {
           ...state,
           isGameOver: true,
-          gameOverReason: `${prisoner.name}（部屋${room.id + 1}）が暴動！ストレスが限界に達した！`,
+          gameOverReason: `${prisoner.name}（部屋${room.id + 1}）が脱獄！見回りが足りなかった！`,
         };
       }
     }
@@ -148,7 +162,7 @@ export function checkStressOverflow(state: GameState): GameState {
   return state;
 }
 
-// 部屋を修理（ストレスリセット）
+// 部屋を巡回（脱獄度リセット）
 export function repairRoom(state: GameState, roomId: number): GameState {
   if (state.inspectionsRemaining <= 0) return state;
 
@@ -160,7 +174,7 @@ export function repairRoom(state: GameState, roomId: number): GameState {
         ? {
             ...r,
             lastInspected: state.day,
-            prisoners: r.prisoners.map(p => ({ ...p, stress: 0 })),
+            prisoners: r.prisoners.map(p => ({ ...p, escapeProgress: 0 })),
           }
         : r
     ),
@@ -179,20 +193,20 @@ export function checkWaitingOverflow(state: GameState): GameState {
   return state;
 }
 
-// ストレス増加処理
-export function progressStress(state: GameState): GameState {
+// 脱獄度増加処理
+export function progressEscape(state: GameState): GameState {
   return {
     ...state,
     rooms: state.rooms.map(room => {
       const hasIncompatible = roomHasIncompatiblePair(room);
-      const stressIncrease = GAME_CONFIG.STRESS_PER_TICK + 
-        (hasIncompatible ? GAME_CONFIG.STRESS_INCOMPATIBLE_BONUS : 0);
+      const escapeIncrease = GAME_CONFIG.ESCAPE_PER_TICK + 
+        (hasIncompatible ? GAME_CONFIG.ESCAPE_INCOMPATIBLE_BONUS : 0);
       
       return {
         ...room,
         prisoners: room.prisoners.map(prisoner => ({
           ...prisoner,
-          stress: prisoner.stress + stressIncrease,
+          escapeProgress: prisoner.escapeProgress + escapeIncrease,
         })),
       };
     }),
@@ -203,11 +217,11 @@ export function progressStress(state: GameState): GameState {
 export function tickTime(state: GameState): GameState {
   if (state.isGameOver || state.isVictory) return state;
 
-  // ストレス増加
-  let newState = progressStress(state);
+  // 脱獄度増加
+  let newState = progressEscape(state);
   
-  // ストレスチェック
-  newState = checkStressOverflow(newState);
+  // 脱獄チェック
+  newState = checkEscapeOverflow(newState);
   if (newState.isGameOver) return newState;
 
   newState = { ...newState, timeRemaining: newState.timeRemaining - 1 };

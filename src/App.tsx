@@ -94,10 +94,10 @@ function App() {
         }
     };
 
-    // ストレスの色
-    const getStressColor = (stress: number) => {
-        if (stress >= 70) return '#e74c3c';
-        if (stress >= 40) return '#f39c12';
+    // 脱獄度の色
+    const getEscapeColor = (escape: number) => {
+        if (escape >= 70) return '#e74c3c';
+        if (escape >= 40) return '#f39c12';
         return '#27ae60';
     };
 
@@ -140,7 +140,7 @@ function App() {
                 </span>
                 {repairMode && (
                     <span style={{ color: '#f39c12' }}>
-                        ← 修理する部屋をクリック（ストレス0にリセット）
+                        ← 巡回する部屋をクリック（脱獄度0にリセット）
                     </span>
                 )}
             </div>
@@ -184,14 +184,14 @@ function App() {
                     marginBottom: '15px',
                     color: '#f39c12'
                 }}>
-                    ⚠️ 狼男🐺とバンパイア🧛を同室にするとストレスが急上昇します！
+                    ⚠️ 狼男🐺とバンパイア🧛を同室にすると脱獄度が急上昇します！
                 </div>
             )}
 
             {/* 部屋グリッド */}
             <main className="prison-grid">
                 {gameState.rooms.map(room => {
-                    const maxStress = Math.max(0, ...room.prisoners.map(p => p.stress));
+                    const maxEscape = Math.max(0, ...room.prisoners.map(p => p.escapeProgress));
                     const hasIncompatible = roomHasIncompatiblePair(room);
 
                     return (
@@ -219,7 +219,7 @@ function App() {
                                 </span>
                             </div>
 
-                            {/* ストレスバー */}
+                            {/* 脱獄度バー */}
                             {room.prisoners.length > 0 && (
                                 <div style={{
                                     background: 'rgba(0,0,0,0.3)',
@@ -229,9 +229,9 @@ function App() {
                                     overflow: 'hidden'
                                 }}>
                                     <div style={{
-                                        width: `${Math.min(maxStress, 100)}%`,
+                                        width: `${Math.min(maxEscape, 100)}%`,
                                         height: '100%',
-                                        background: getStressColor(maxStress),
+                                        background: getEscapeColor(maxEscape),
                                         transition: 'width 0.3s, background 0.3s'
                                     }} />
                                 </div>
@@ -247,10 +247,10 @@ function App() {
                                         </div>
                                         <div style={{
                                             fontSize: '0.7rem',
-                                            color: getStressColor(prisoner.stress),
+                                            color: getEscapeColor(prisoner.escapeProgress),
                                             marginTop: '4px'
                                         }}>
-                                            ストレス: {Math.min(Math.round(prisoner.stress), 100)}%
+                                            脱獄度: {Math.min(Math.round(prisoner.escapeProgress), 100)}%
                                         </div>
                                     </div>
                                 ))}
