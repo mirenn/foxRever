@@ -27,17 +27,26 @@ const PRISONER_NAMES: Record<PrisonerType, string[]> = {
 };
 
 // ランダムな囚人タイプ
-function randomPrisonerType(): PrisonerType {
+function randomPrisonerType(stage: number): PrisonerType {
   const rand = Math.random();
+  
+  // ステージ1: 力持ちなし、狼男・バンパイアのみ
+  if (stage === 1) {
+    if (rand < 0.15) return 'werewolf';
+    if (rand < 0.30) return 'vampire';
+    return 'normal';
+  }
+
+  // ステージ2: 全種登場
   if (rand < 0.12) return 'werewolf';
   if (rand < 0.24) return 'vampire';
-  if (rand < 0.32) return 'strong';
+  if (rand < 0.36) return 'strong';
   return 'normal';
 }
 
 // 新しい囚人を生成
-export function createPrisoner(): Prisoner {
-  const type = randomPrisonerType();
+export function createPrisoner(stage: number): Prisoner {
+  const type = randomPrisonerType(stage);
   const names = PRISONER_NAMES[type];
   const name = names[Math.floor(Math.random() * names.length)];
   return {
@@ -49,7 +58,7 @@ export function createPrisoner(): Prisoner {
 }
 
 // 初期ゲーム状態
-export function createInitialState(): GameState {
+export function createInitialState(stage: number = 1): GameState {
   const rooms: Room[] = [];
   for (let i = 0; i < GAME_CONFIG.TOTAL_ROOMS; i++) {
     rooms.push({
@@ -62,14 +71,26 @@ export function createInitialState(): GameState {
   }
 
   return {
+    phase: 'title', // 最初はタイトル
+    currentStage: stage,
     rooms,
-    waitingPrisoners: [createPrisoner()],
+    waitingPrisoners: [], // 最初は空、開始時に追加されるか、tickで追加
     day: 1,
     timeOfDay: 'day',
     timeRemaining: GAME_CONFIG.DAY_DURATION,
     isGameOver: false,
     isVictory: false,
     inspectionsRemaining: GAME_CONFIG.REPAIRS_PER_DAY,
+  };
+}
+
+// ゲーム開始時の状態生成 (タイトルから遷移用)
+export function startGameState(stage: number): GameState {
+  const state = createInitialState(stage);
+  return {
+    ...state,
+    phase: 'playing',
+    waitingPrisoners: [createPrisoner(stage)],
   };
 }
 
@@ -138,6 +159,7 @@ export function checkWerewolfEscape(state: GameState): GameState {
         return {
           ...state,
           isGameOver: true,
+          phase: 'result',
           gameOverReason: `部屋${room.id + 1}で狼男が暴走！月光で変身してしまった！`,
         };
       }
@@ -154,6 +176,7 @@ export function checkEscapeOverflow(state: GameState): GameState {
         return {
           ...state,
           isGameOver: true,
+          phase: 'result',
           gameOverReason: `${prisoner.name}（部屋${room.id + 1}）が脱獄！見回りが足りなかった！`,
         };
       }
@@ -187,6 +210,7 @@ export function checkWaitingOverflow(state: GameState): GameState {
     return {
       ...state,
       isGameOver: true,
+      phase: 'result',
       gameOverReason: '待機エリアが溢れた！囚人たちが暴動を起こした！',
     };
   }
@@ -204,10 +228,16 @@ export function progressEscape(state: GameState): GameState {
       
       return {
         ...room,
-        prisoners: room.prisoners.map(prisoner => ({
-          ...prisoner,
-          escapeProgress: prisoner.escapeProgress + escapeIncrease,
-        })),
+        prisoners: room.prisoners.map(prisoner => {
+          // 力持ち(strong)は脱獄スピード2倍
+          const speedMultiplier = prisoner.type === 'strong' ? 2 : 1;
+          const totalIncrease = escapeIncrease * speedMultiplier;
+
+          return {
+            ...prisoner,
+            escapeProgress: prisoner.escapeProgress + totalIncrease,
+          };
+        }),
       };
     }),
   };
@@ -244,6 +274,7 @@ export function tickTime(state: GameState): GameState {
         return {
           ...newState,
           isVictory: true,
+          phase: 'result',
         };
       }
       newState = {
@@ -265,7 +296,7 @@ export function spawnPrisoner(state: GameState): GameState {
 
   const newState = {
     ...state,
-    waitingPrisoners: [...state.waitingPrisoners, createPrisoner()],
+    waitingPrisoners: [...state.waitingPrisoners, createPrisoner(state.currentStage)],
   };
 
   return checkWaitingOverflow(newState);

@@ -21,8 +21,13 @@ export interface Room {
 // 時間帯
 export type TimeOfDay = 'day' | 'night';
 
+// ゲームフェーズ
+export type GamePhase = 'title' | 'playing' | 'result';
+
 // ゲーム状態
 export interface GameState {
+  phase: GamePhase;
+  currentStage: number; // 1 or 2
   rooms: Room[];
   waitingPrisoners: Prisoner[]; // 配置待ちの囚人
   day: number; // 現在の日数（1-3）

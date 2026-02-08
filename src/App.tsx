@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { GameState, GAME_CONFIG } from './types';
 import {
     createInitialState,
+    startGameState,
     placePrisoner,
     tickTime,
     spawnPrisoner,
@@ -11,14 +12,14 @@ import {
 } from './gameLogic';
 
 function App() {
-    const [gameState, setGameState] = useState<GameState>(createInitialState);
+    const [gameState, setGameState] = useState<GameState>(createInitialState());
     const [selectedPrisonerId, setSelectedPrisonerId] = useState<string | null>(null);
     const [spawnTimer, setSpawnTimer] = useState(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
     const [repairMode, setRepairMode] = useState(false);
 
     // ゲームループ（1秒ごと）
     useEffect(() => {
-        if (gameState.isGameOver || gameState.isVictory) return;
+        if (gameState.phase !== 'playing') return;
 
         const interval = setInterval(() => {
             setGameState(prev => tickTime(prev));
@@ -32,17 +33,19 @@ function App() {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [gameState.isGameOver, gameState.isVictory]);
+    }, [gameState.phase]);
 
     // 夜になった瞬間に狼男チェック
     useEffect(() => {
-        if (gameState.timeOfDay === 'night' && !gameState.isGameOver) {
+        if (gameState.phase === 'playing' && gameState.timeOfDay === 'night' && !gameState.isGameOver) {
             setGameState(prev => checkWerewolfEscape(prev));
         }
-    }, [gameState.timeOfDay, gameState.isGameOver]);
+    }, [gameState.phase, gameState.timeOfDay, gameState.isGameOver]);
 
     // 部屋クリック処理
     const handleRoomClick = useCallback((roomId: number) => {
+        if (gameState.phase !== 'playing') return;
+
         if (repairMode) {
             // 修理モード
             setGameState(prev => repairRoom(prev, roomId));
@@ -52,27 +55,44 @@ function App() {
             setGameState(prev => placePrisoner(prev, selectedPrisonerId, roomId));
             setSelectedPrisonerId(null);
         }
-    }, [selectedPrisonerId, repairMode]);
+    }, [gameState.phase, selectedPrisonerId, repairMode]);
 
     // 囚人を選択
     const handlePrisonerClick = useCallback((prisonerId: string) => {
+        if (gameState.phase !== 'playing') return;
         setRepairMode(false);
         setSelectedPrisonerId(prev => prev === prisonerId ? null : prisonerId);
-    }, []);
+    }, [gameState.phase]);
 
     // 修理モード切替
     const handleRepairClick = useCallback(() => {
+        if (gameState.phase !== 'playing') return;
         setSelectedPrisonerId(null);
         setRepairMode(prev => !prev);
-    }, []);
+    }, [gameState.phase]);
 
-    // リスタート
-    const handleRestart = useCallback(() => {
-        setGameState(createInitialState());
+    // ステージ選択・ゲーム開始
+    const handleStartGame = useCallback((stage: number) => {
+        setGameState(startGameState(stage));
         setSelectedPrisonerId(null);
         setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
         setRepairMode(false);
     }, []);
+
+    // タイトルに戻る
+    const handleBackToTitle = useCallback(() => {
+        setGameState(createInitialState());
+        setSelectedPrisonerId(null);
+        setRepairMode(false);
+    }, []);
+
+    // リスタート（同じステージ）
+    const handleRestart = useCallback(() => {
+        setGameState(startGameState(gameState.currentStage));
+        setSelectedPrisonerId(null);
+        setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
+        setRepairMode(false);
+    }, [gameState.currentStage]);
 
     // 囚人アイコン取得
     const getPrisonerIcon = (type: string) => {
@@ -101,11 +121,65 @@ function App() {
         return '#27ae60';
     };
 
+    // タイトル画面
+    if (gameState.phase === 'title') {
+        return (
+            <div className="game-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '20px' }}>
+                <h1 style={{ fontSize: '3rem', marginBottom: '20px', textAlign: 'center' }}>
+                    🏛️ 囚人管理シミュレーター
+                </h1>
+
+                <div style={{ display: 'flex', gap: '20px', flexDirection: 'column', width: '300px' }}>
+                    <button
+                        onClick={() => handleStartGame(1)}
+                        style={{
+                            padding: '20px',
+                            fontSize: '1.2rem',
+                            cursor: 'pointer',
+                            background: '#2ecc71',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            boxShadow: '0 4px 0 #27ae60'
+                        }}
+                    >
+                        ステージ 1 : Normal
+                        <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
+                            基本ルール・力持ちなし
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => handleStartGame(2)}
+                        style={{
+                            padding: '20px',
+                            fontSize: '1.2rem',
+                            cursor: 'pointer',
+                            background: '#e74c3c',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            boxShadow: '0 4px 0 #c0392b'
+                        }}
+                    >
+                        ステージ 2 : Hard
+                        <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
+                            力持ち出現・脱獄速度UP
+                        </div>
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="game-container">
             {/* ヘッダー */}
             <header className="game-header">
                 <div className="time-display">
+                    <span className="stage-info" style={{ marginRight: '15px', fontWeight: 'bold', color: '#f1c40f' }}>
+                        STAGE {gameState.currentStage}
+                    </span>
                     <span className="day">Day {gameState.day} / {GAME_CONFIG.TOTAL_DAYS}</span>
                     <span className={`time-of-day ${gameState.timeOfDay}`}>
                         {gameState.timeOfDay === 'day' ? '☀️ 昼' : '🌙 夜'}
@@ -145,7 +219,16 @@ function App() {
             </div>
 
             {/* 待機エリア */}
-            <section className="waiting-area">
+            <section
+                className="waiting-area"
+                style={{
+                    border: gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? '3px solid #e74c3c' : undefined,
+                    backgroundColor: gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? 'rgba(231, 76, 60, 0.1)' : undefined,
+                    boxShadow: gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? '0 0 15px rgba(231, 76, 60, 0.5)' : undefined,
+                    transition: 'all 0.3s ease',
+                    animation: gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? 'pulse-red 2s infinite' : undefined
+                }}
+            >
                 <h2>
                     📥 待機エリア ({gameState.waitingPrisoners.length}/{GAME_CONFIG.MAX_WAITING_PRISONERS})
                     <span style={{ marginLeft: '20px', fontSize: '0.9rem', color: '#95a5a6' }}>
@@ -267,7 +350,7 @@ function App() {
             </main>
 
             {/* ゲームオーバー・勝利画面 */}
-            {(gameState.isGameOver || gameState.isVictory) && (
+            {(gameState.phase === 'result') && (
                 <div className="game-overlay">
                     <div className={`game-result ${gameState.isVictory ? 'victory' : 'game-over'}`}>
                         <h2>{gameState.isVictory ? '🎉 勝利！' : '💀 ゲームオーバー'}</h2>
@@ -276,9 +359,14 @@ function App() {
                                 ? '3日間、暴動を防ぎました！'
                                 : gameState.gameOverReason}
                         </p>
-                        <button className="restart-button" onClick={handleRestart}>
-                            🔄 もう一度プレイ
-                        </button>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+                            <button className="restart-button" onClick={handleRestart}>
+                                🔄 もう一度 ({gameState.currentStage === 1 ? 'Normal' : 'Hard'})
+                            </button>
+                            <button className="restart-button" onClick={handleBackToTitle} style={{ background: '#95a5a6' }}>
+                                🏠 タイトルへ
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
