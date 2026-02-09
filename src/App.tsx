@@ -150,21 +150,21 @@ function App() {
                     </button>
 
                     <button
-                        onClick={() => handleStartGame(2)}
+                        disabled={true}
                         style={{
                             padding: '20px',
                             fontSize: '1.2rem',
-                            cursor: 'pointer',
-                            background: '#e74c3c',
-                            color: 'white',
+                            cursor: 'not-allowed',
+                            background: '#95a5a6',
+                            color: '#bdc3c7',
                             border: 'none',
                             borderRadius: '10px',
-                            boxShadow: '0 4px 0 #c0392b'
+                            boxShadow: 'none'
                         }}
                     >
-                        ステージ 2 : Hard
+                        ステージ 2 : Hard (準備中)
                         <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
-                            力持ち出現・脱獄速度UP
+                            調整中のためプレイ不可
                         </div>
                     </button>
                 </div>
@@ -327,13 +327,15 @@ function App() {
                                         <div className={`prisoner-type ${prisoner.type}`}>
                                             {getPrisonerTypeName(prisoner.type)}
                                         </div>
-                                        <div style={{
-                                            fontSize: '0.7rem',
-                                            color: getEscapeColor(prisoner.escapeProgress),
-                                            marginTop: '4px'
-                                        }}>
-                                            脱獄度: {Math.min(Math.round(prisoner.escapeProgress), 100)}%
-                                        </div>
+                                        {gameState.currentStage !== 1 && (
+                                            <div style={{
+                                                fontSize: '0.7rem',
+                                                color: getEscapeColor(prisoner.escapeProgress),
+                                                marginTop: '4px'
+                                            }}>
+                                                脱獄度: {Math.min(Math.round(prisoner.escapeProgress), 100)}%
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {room.prisoners.length === 0 && (
