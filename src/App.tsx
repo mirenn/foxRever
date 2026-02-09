@@ -35,10 +35,20 @@ const HelpModal = ({ onClose }: { onClose: () => void }) => (
             </div>
 
             <div className="help-step">
-                <div className="help-step-icon">⚠️</div>
+                <div className="help-step-icon">👮</div>
                 <div className="help-step-text">
-                    <strong>3. 暴動を防ぐ</strong><br />
-                    ストレスがたまらないように管理し、3日間生き残りましょう！
+                    <strong>3. 巡回して鎮める</strong><br />
+                    「巡回」ボタンで、1日2回まで部屋の脱獄度を0にリセットできます。<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※脱獄寸前の部屋を鎮めましょう！</span>
+                </div>
+            </div>
+
+            <div className="help-step">
+                <div className="help-step-icon">🏆</div>
+                <div className="help-step-text">
+                    <strong>4. クリア条件</strong><br />
+                    3日間、脱獄を防ぎきれば勝利です！<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※夜の変身や相性にも注意...</span>
                 </div>
             </div>
 
@@ -258,7 +268,7 @@ function App() {
                 </button>
             </header>
 
-            {/* 修理ボタン */}
+            {/* 巡回ボタン (Old Repair Button) */}
             <div style={{ marginBottom: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
                 <button
                     onClick={handleRepairClick}
@@ -274,14 +284,14 @@ function App() {
                     }}
                     disabled={gameState.inspectionsRemaining <= 0}
                 >
-                    🔧 修理モード {repairMode ? '(ON)' : ''}
+                    👮 巡回 {repairMode ? '(ON)' : ''}
                 </button>
                 <span style={{ color: '#95a5a6' }}>
-                    残り修理回数: {gameState.inspectionsRemaining} / {GAME_CONFIG.REPAIRS_PER_DAY}
+                    残り巡回回数: {gameState.inspectionsRemaining} / {GAME_CONFIG.REPAIRS_PER_DAY}
                 </span>
                 {repairMode && (
                     <span style={{ color: '#f39c12' }}>
-                        ← 巡回する部屋をクリック（脱獄度0にリセット）
+                        ← 部屋をクリックして脱獄度を0にする
                     </span>
                 )}
             </div>
@@ -413,7 +423,7 @@ function App() {
                                     <div className="room-empty">
                                         空室
                                         {selectedPrisonerId && <div style={{ marginTop: '10px' }}>クリックで配置</div>}
-                                        {repairMode && <div style={{ marginTop: '10px', color: '#3498db' }}>修理する</div>}
+                                        {repairMode && <div style={{ marginTop: '10px', color: '#3498db' }}>巡回する</div>}
                                     </div>
                                 )}
                             </div>
@@ -433,6 +443,36 @@ function App() {
                                 ? '3日間、暴動を防ぎました！'
                                 : gameState.gameOverReason}
                         </p>
+
+                        {/* Tweet Button */}
+                        <div style={{ marginTop: '15px' }}>
+                            <button
+                                onClick={() => {
+                                    const text = gameState.isVictory
+                                        ? `囚人管理シミュレーター(Stage ${gameState.currentStage})をクリアしました！暴動を防ぎきった！`
+                                        : `囚人管理シミュレーター(Stage ${gameState.currentStage})でゲームオーバー... ${gameState.gameOverReason}`;
+                                    const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " #PrisonerManager");
+                                    window.open(url, '_blank');
+                                }}
+                                style={{
+                                    background: '#1DA1F2',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.9rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    margin: '0 auto'
+                                }}
+                            >
+                                🐦 結果をポストする
+                            </button>
+                        </div>
+
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
                             <button className="restart-button" onClick={handleRestart}>
                                 🔄 もう一度 ({gameState.currentStage === 1 ? 'Normal' : 'Hard'})
