@@ -11,11 +11,50 @@ import {
     roomHasIncompatiblePair,
 } from './gameLogic';
 
+const HelpModal = ({ onClose }: { onClose: () => void }) => (
+    <div className="help-modal-overlay" onClick={onClose}>
+        <div className="help-modal" onClick={e => e.stopPropagation()}>
+            <h2>📖 遊び方</h2>
+
+            <div className="help-step">
+                <div className="help-step-icon">🗳️</div>
+                <div className="help-step-text">
+                    <strong>1. 囚人を選択</strong><br />
+                    待機エリアの囚人をクリックします。<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※点滅している囚人が選べます</span>
+                </div>
+            </div>
+
+            <div className="help-step">
+                <div className="help-step-icon">🏠</div>
+                <div className="help-step-text">
+                    <strong>2. 部屋に配置</strong><br />
+                    光っている部屋（空きあり）をクリックして入れます。<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※定員は1部屋2名まで</span>
+                </div>
+            </div>
+
+            <div className="help-step">
+                <div className="help-step-icon">⚠️</div>
+                <div className="help-step-text">
+                    <strong>3. 暴動を防ぐ</strong><br />
+                    ストレスがたまらないように管理し、3日間生き残りましょう！
+                </div>
+            </div>
+
+            <button className="help-close-btn" onClick={onClose}>
+                閉じる
+            </button>
+        </div>
+    </div>
+);
+
 function App() {
     const [gameState, setGameState] = useState<GameState>(createInitialState());
     const [selectedPrisonerId, setSelectedPrisonerId] = useState<string | null>(null);
     const [spawnTimer, setSpawnTimer] = useState(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
     const [repairMode, setRepairMode] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     // ゲームループ（1秒ごと）
     useEffect(() => {
@@ -168,6 +207,27 @@ function App() {
                         </div>
                     </button>
                 </div>
+
+                <button
+                    onClick={() => setShowHelp(true)}
+                    style={{
+                        marginTop: '10px',
+                        background: 'none',
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        color: 'white',
+                        padding: '10px 20px',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        fontSize: '1rem'
+                    }}
+                >
+                    ❓ 遊び方を見る
+                </button>
+
+                {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
             </div>
         );
     }
@@ -175,7 +235,7 @@ function App() {
     return (
         <div className="game-container">
             {/* ヘッダー */}
-            <header className="game-header">
+            <header className="game-header" style={{ position: 'relative' }}>
                 <div className="time-display">
                     <span className="stage-info" style={{ marginRight: '15px', fontWeight: 'bold', color: '#f1c40f' }}>
                         STAGE {gameState.currentStage}
@@ -188,6 +248,14 @@ function App() {
                         残り {gameState.timeRemaining}秒
                     </span>
                 </div>
+                <button
+                    className="help-toggle-btn"
+                    onClick={() => setShowHelp(true)}
+                    title="遊び方"
+                    style={{ position: 'absolute', right: '20px', top: '20px' }}
+                >
+                    ?
+                </button>
             </header>
 
             {/* 修理ボタン */}
@@ -239,7 +307,7 @@ function App() {
                     {gameState.waitingPrisoners.map(prisoner => (
                         <div
                             key={prisoner.id}
-                            className={`prisoner-card ${prisoner.type} ${selectedPrisonerId === prisoner.id ? 'selected' : ''}`}
+                            className={`prisoner-card ${prisoner.type} ${selectedPrisonerId === prisoner.id ? 'selected' : ''} ${!selectedPrisonerId && !repairMode ? 'interactive' : ''}`}
                             onClick={() => handlePrisonerClick(prisoner.id)}
                         >
                             <div className="prisoner-icon">{getPrisonerIcon(prisoner.type)}</div>
@@ -275,11 +343,14 @@ function App() {
                 {gameState.rooms.map(room => {
                     const maxEscape = Math.max(0, ...room.prisoners.map(p => p.escapeProgress));
                     const hasIncompatible = roomHasIncompatiblePair(room);
+                    const isFull = room.prisoners.length >= room.capacity;
+                    const isValidTarget = selectedPrisonerId && !isFull;
+                    const isInvalidTarget = selectedPrisonerId && isFull;
 
                     return (
                         <div
                             key={room.id}
-                            className={`room ${room.hasMoonlight ? 'moonlight' : ''} ${room.hasMoonlight && gameState.timeOfDay === 'night' ? 'night' : ''}`}
+                            className={`room ${room.hasMoonlight ? 'moonlight' : ''} ${room.hasMoonlight && gameState.timeOfDay === 'night' ? 'night' : ''} ${isValidTarget ? 'valid-target' : ''} ${isInvalidTarget ? 'invalid-target' : ''}`}
                             onClick={() => handleRoomClick(room.id)}
                             style={{
                                 cursor: repairMode ? 'crosshair' : (selectedPrisonerId && room.prisoners.length < room.capacity ? 'pointer' : 'default'),
@@ -346,6 +417,7 @@ function App() {
                                     </div>
                                 )}
                             </div>
+                            {isInvalidTarget && <div className="room-full-indicator">FULL</div>}
                         </div>
                     );
                 })}
@@ -372,6 +444,8 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
         </div>
     );
 }
