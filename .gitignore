@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 build/
+*.zip
 
 # IDE / Editor
 .vscode/
@@ -33,3 +34,6 @@ yarn-error.log*
 
 # Vite cache
 .vite/
+
+# Local assets
+images/concept/
