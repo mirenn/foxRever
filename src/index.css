@@ -136,6 +136,29 @@ body {
 .prisoner-icon {
   font-size: 2rem;
   margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.prisoner-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 6px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.prisoner-card:hover .prisoner-img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+}
+
+.room .prisoner-img {
+  width: 48px;
+  height: 48px;
 }
 
 .prisoner-name {

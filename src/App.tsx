@@ -143,7 +143,17 @@ function App() {
         setRepairMode(false);
     }, [gameState.currentStage]);
 
-    // 囚人アイコン取得
+    // 囚人画像パス取得
+    const getPrisonerImage = (type: string) => {
+        switch (type) {
+            case 'werewolf': return '/images/werewolf_prisoner.png';
+            case 'vampire': return '/images/vampire_prisoner.png';
+            case 'strong': return '/images/normal_prisoner.png';
+            default: return '/images/normal_prisoner.png';
+        }
+    };
+
+    // 囚人アイコン取得（フォールバック用）
     const getPrisonerIcon = (type: string) => {
         switch (type) {
             case 'werewolf': return '🐺';
@@ -320,7 +330,9 @@ function App() {
                             className={`prisoner-card ${prisoner.type} ${selectedPrisonerId === prisoner.id ? 'selected' : ''} ${!selectedPrisonerId && !repairMode ? 'interactive' : ''}`}
                             onClick={() => handlePrisonerClick(prisoner.id)}
                         >
-                            <div className="prisoner-icon">{getPrisonerIcon(prisoner.type)}</div>
+                            <div className="prisoner-icon">
+                                <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className="prisoner-img" />
+                            </div>
                             <div className="prisoner-name">{prisoner.name}</div>
                             <div className={`prisoner-type ${prisoner.type}`}>
                                 {getPrisonerTypeName(prisoner.type)}
@@ -403,7 +415,9 @@ function App() {
                             <div className="room-prisoners">
                                 {room.prisoners.map(prisoner => (
                                     <div key={prisoner.id} className={`prisoner-card ${prisoner.type}`}>
-                                        <div className="prisoner-icon">{getPrisonerIcon(prisoner.type)}</div>
+                                        <div className="prisoner-icon">
+                                            <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className="prisoner-img" />
+                                        </div>
                                         <div className="prisoner-name">{prisoner.name}</div>
                                         <div className={`prisoner-type ${prisoner.type}`}>
                                             {getPrisonerTypeName(prisoner.type)}
