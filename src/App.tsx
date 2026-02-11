@@ -254,10 +254,18 @@ function App() {
 
     return (
         <div className="game-container">
-            {/* ヘッダー */}
-            <header className="game-header" style={{ position: 'relative' }}>
-                <div className="time-display">
-                    <span className="stage-info" style={{ marginRight: '15px', fontWeight: 'bold', color: '#f1c40f' }}>
+            {/* ヘッダー（巡回ボタン統合） */}
+            <header className="game-header">
+                <div className="header-left">
+                    <button
+                        className={`patrol-btn ${repairMode ? 'active' : ''}`}
+                        onClick={handleRepairClick}
+                        disabled={gameState.inspectionsRemaining <= 0}
+                        title={repairMode ? '部屋をクリックして脱獄度を0にする' : `残り巡回回数: ${gameState.inspectionsRemaining}`}
+                    >
+                        👮 巡回{repairMode ? ' ON' : ''} ({gameState.inspectionsRemaining}/{GAME_CONFIG.REPAIRS_PER_DAY})
+                    </button>
+                    <span className="stage-info" style={{ fontWeight: 'bold', color: '#f1c40f' }}>
                         STAGE {gameState.currentStage}
                     </span>
                     <span className="day">Day {gameState.day} / {GAME_CONFIG.TOTAL_DAYS}</span>
@@ -268,43 +276,21 @@ function App() {
                         残り {gameState.timeRemaining}秒
                     </span>
                 </div>
-                <button
-                    className="help-toggle-btn"
-                    onClick={() => setShowHelp(true)}
-                    title="遊び方"
-                    style={{ position: 'absolute', right: '20px', top: '20px' }}
-                >
-                    ?
-                </button>
+                <div className="header-right">
+                    <button
+                        className="help-toggle-btn"
+                        onClick={() => setShowHelp(true)}
+                        title="遊び方"
+                    >
+                        ?
+                    </button>
+                </div>
             </header>
-
-            {/* 巡回ボタン (Old Repair Button) */}
-            <div style={{ marginBottom: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
-                <button
-                    onClick={handleRepairClick}
-                    style={{
-                        background: repairMode ? '#e74c3c' : 'linear-gradient(135deg, #3498db, #2980b9)',
-                        border: 'none',
-                        color: 'white',
-                        padding: '12px 24px',
-                        fontSize: '1rem',
-                        borderRadius: '8px',
-                        cursor: gameState.inspectionsRemaining > 0 ? 'pointer' : 'not-allowed',
-                        opacity: gameState.inspectionsRemaining > 0 ? 1 : 0.5,
-                    }}
-                    disabled={gameState.inspectionsRemaining <= 0}
-                >
-                    👮 巡回 {repairMode ? '(ON)' : ''}
-                </button>
-                <span style={{ color: '#95a5a6' }}>
-                    残り巡回回数: {gameState.inspectionsRemaining} / {GAME_CONFIG.REPAIRS_PER_DAY}
-                </span>
-                {repairMode && (
-                    <span style={{ color: '#f39c12' }}>
-                        ← 部屋をクリックして脱獄度を0にする
-                    </span>
-                )}
-            </div>
+            {repairMode && (
+                <div className="patrol-hint">
+                    ⚠️ 巡回モード: 部屋をクリックして脱獄度を0にする
+                </div>
+            )}
 
             {/* 待機エリア */}
             <section

@@ -19,17 +19,72 @@ body {
 .game-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 10px 20px;
 }
 
 /* ヘッダー */
 .game-header {
-  text-align: center;
-  margin-bottom: 20px;
-  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  border-radius: 12px;
   backdrop-filter: blur(10px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.patrol-btn {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.patrol-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.patrol-btn.active {
+  background: #e74c3c;
+  animation: pulse-red 2s infinite;
+}
+
+.patrol-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.patrol-hint {
+  background: rgba(243, 156, 18, 0.15);
+  color: #f39c12;
+  padding: 6px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .game-header h1 {
@@ -45,8 +100,8 @@ body {
 .time-display {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  font-size: 1.2rem;
+  gap: 16px;
+  font-size: 1.1rem;
 }
 
 .time-display .day {
@@ -79,31 +134,31 @@ body {
 /* 待機エリア */
 .waiting-area {
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
   border: 2px dashed rgba(255, 255, 255, 0.2);
 }
 
 .waiting-area h2 {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
   color: #f39c12;
 }
 
 .waiting-prisoners {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   flex-wrap: wrap;
-  min-height: 80px;
+  min-height: 60px;
 }
 
 /* 囚人カード */
 .prisoner-card {
   background: linear-gradient(145deg, #2d3436, #1e272e);
   border-radius: 12px;
-  padding: 15px;
-  width: 100px;
+  padding: 10px;
+  width: 110px;
   text-align: center;
   cursor: grab;
   transition: all 0.2s ease;
@@ -142,8 +197,8 @@ body {
 }
 
 .prisoner-img {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   image-rendering: pixelated;
   border-radius: 6px;
@@ -157,8 +212,8 @@ body {
 }
 
 .room .prisoner-img {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
 }
 
 .prisoner-name {
@@ -203,15 +258,15 @@ body {
 .prison-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
+  gap: 10px;
 }
 
 /* 部屋 */
 .room {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 15px;
-  min-height: 180px;
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 150px;
   border: 2px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
   position: relative;
@@ -247,8 +302,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -278,7 +333,7 @@ body {
 .room .prisoner-card {
   width: 48%;
   min-width: 80px;
-  padding: 10px 8px;
+  padding: 8px 4px;
   cursor: default;
 }
 
