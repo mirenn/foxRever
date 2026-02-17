@@ -1,4 +1,5 @@
 import { GameState, Prisoner, PrisonerType, Room, GAME_CONFIG, INCOMPATIBLE_PAIRS } from './types';
+import { t } from './i18n';
 
 // ユニークID生成
 let nextId = 0;
@@ -160,7 +161,7 @@ export function checkWerewolfEscape(state: GameState): GameState {
           ...state,
           isGameOver: true,
           phase: 'result',
-          gameOverReason: `部屋${room.id + 1}で狼男が暴走！月光で変身してしまった！`,
+          gameOverReason: t('werewolfBerserk')(room.id + 1),
         };
       }
     }
@@ -177,7 +178,7 @@ export function checkEscapeOverflow(state: GameState): GameState {
           ...state,
           isGameOver: true,
           phase: 'result',
-          gameOverReason: `${prisoner.name}（部屋${room.id + 1}）が脱獄！見回りが足りなかった！`,
+          gameOverReason: t('prisonerEscaped')(prisoner.name, room.id + 1),
         };
       }
     }
@@ -211,7 +212,7 @@ export function checkWaitingOverflow(state: GameState): GameState {
       ...state,
       isGameOver: true,
       phase: 'result',
-      gameOverReason: '待機エリアが溢れた！囚人たちが暴動を起こした！',
+      gameOverReason: t('waitingOverflow'),
     };
   }
   return state;

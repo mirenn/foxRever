@@ -10,50 +10,51 @@ import {
     repairRoom,
     roomHasIncompatiblePair,
 } from './gameLogic';
+import { t, getLanguage, setLanguage, Language } from './i18n';
 
 const HelpModal = ({ onClose }: { onClose: () => void }) => (
     <div className="help-modal-overlay" onClick={onClose}>
         <div className="help-modal" onClick={e => e.stopPropagation()}>
-            <h2>📖 遊び方</h2>
+            <h2>{t('helpTitle')}</h2>
 
             <div className="help-step">
                 <div className="help-step-icon">🗳️</div>
                 <div className="help-step-text">
-                    <strong>1. 囚人を選択</strong><br />
-                    待機エリアの囚人をクリックします。<br />
-                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※点滅している囚人が選べます</span>
+                    <strong>{t('helpStep1Title')}</strong><br />
+                    {t('helpStep1Desc')}<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>{t('helpStep1Note')}</span>
                 </div>
             </div>
 
             <div className="help-step">
                 <div className="help-step-icon">🏠</div>
                 <div className="help-step-text">
-                    <strong>2. 部屋に配置</strong><br />
-                    光っている部屋（空きあり）をクリックして入れます。<br />
-                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※定員は1部屋2名まで</span>
+                    <strong>{t('helpStep2Title')}</strong><br />
+                    {t('helpStep2Desc')}<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>{t('helpStep2Note')}</span>
                 </div>
             </div>
 
             <div className="help-step">
                 <div className="help-step-icon">👮</div>
                 <div className="help-step-text">
-                    <strong>3. 巡回して鎮める</strong><br />
-                    「巡回」ボタンで、1日2回まで部屋の脱獄度を0にリセットできます。<br />
-                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※脱獄寸前の部屋を鎮めましょう！</span>
+                    <strong>{t('helpStep3Title')}</strong><br />
+                    {t('helpStep3Desc')}<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>{t('helpStep3Note')}</span>
                 </div>
             </div>
 
             <div className="help-step">
                 <div className="help-step-icon">🏆</div>
                 <div className="help-step-text">
-                    <strong>4. クリア条件</strong><br />
-                    3日間、脱獄を防ぎきれば勝利です！<br />
-                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>※夜の変身や相性にも注意...</span>
+                    <strong>{t('helpStep4Title')}</strong><br />
+                    {t('helpStep4Desc')}<br />
+                    <span style={{ fontSize: '0.85rem', color: '#bdc3c7' }}>{t('helpStep4Note')}</span>
                 </div>
             </div>
 
             <button className="help-close-btn" onClick={onClose}>
-                閉じる
+                {t('closeBtn')}
             </button>
         </div>
     </div>
@@ -65,6 +66,14 @@ function App() {
     const [spawnTimer, setSpawnTimer] = useState(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
     const [repairMode, setRepairMode] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    const [lang, setLang] = useState<Language>(getLanguage());
+
+    // 言語切替
+    const toggleLanguage = useCallback(() => {
+        const newLang = lang === 'ja' ? 'en' : 'ja';
+        setLanguage(newLang);
+        setLang(newLang);
+    }, [lang]);
 
     // ゲームループ（1秒ごと）
     useEffect(() => {
@@ -96,11 +105,9 @@ function App() {
         if (gameState.phase !== 'playing') return;
 
         if (repairMode) {
-            // 修理モード
             setGameState(prev => repairRoom(prev, roomId));
             setRepairMode(false);
         } else if (selectedPrisonerId) {
-            // 配置モード
             setGameState(prev => placePrisoner(prev, selectedPrisonerId, roomId));
             setSelectedPrisonerId(null);
         }
@@ -166,10 +173,10 @@ function App() {
     // 囚人タイプ名取得
     const getPrisonerTypeName = (type: string) => {
         switch (type) {
-            case 'werewolf': return '狼男';
-            case 'vampire': return 'バンパイア';
-            case 'strong': return '力持ち';
-            default: return '普通';
+            case 'werewolf': return t('typeWerewolf');
+            case 'vampire': return t('typeVampire');
+            case 'strong': return t('typeStrong');
+            default: return t('typeNormal');
         }
     };
 
@@ -180,12 +187,35 @@ function App() {
         return '#27ae60';
     };
 
+    // 言語切替ボタン
+    const langToggle = (
+        <button
+            onClick={toggleLanguage}
+            style={{
+                background: 'none',
+                border: '2px solid rgba(255,255,255,0.3)',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+            }}
+            title={lang === 'ja' ? 'Switch to English' : '日本語に切替'}
+        >
+            {lang === 'ja' ? 'EN' : 'JA'}
+        </button>
+    );
+
     // タイトル画面
     if (gameState.phase === 'title') {
         return (
             <div className="game-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+                    {langToggle}
+                </div>
                 <h1 style={{ fontSize: '3rem', marginBottom: '20px', textAlign: 'center' }}>
-                    🏛️ 囚人管理シミュレーター
+                    {t('gameTitle')}
                 </h1>
 
                 <div style={{ display: 'flex', gap: '20px', flexDirection: 'column', width: '300px' }}>
@@ -202,9 +232,9 @@ function App() {
                             boxShadow: '0 4px 0 #27ae60'
                         }}
                     >
-                        ステージ 1 : Normal
+                        {t('stage1Label')}
                         <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
-                            基本ルール・力持ちなし
+                            {t('stage1Desc')}
                         </div>
                     </button>
 
@@ -221,9 +251,9 @@ function App() {
                             boxShadow: 'none'
                         }}
                     >
-                        ステージ 2 : Hard (準備中)
+                        {t('stage2Label')}
                         <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
-                            調整中のためプレイ不可
+                            {t('stage2Desc')}
                         </div>
                     </button>
                 </div>
@@ -244,7 +274,7 @@ function App() {
                         fontSize: '1rem'
                     }}
                 >
-                    ❓ 遊び方を見る
+                    {t('howToPlayBtn')}
                 </button>
 
                 {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
@@ -261,26 +291,27 @@ function App() {
                         className={`patrol-btn ${repairMode ? 'active' : ''}`}
                         onClick={handleRepairClick}
                         disabled={gameState.inspectionsRemaining <= 0}
-                        title={repairMode ? '部屋をクリックして脱獄度を0にする' : `残り巡回回数: ${gameState.inspectionsRemaining}`}
+                        title={repairMode ? t('patrolHintOn') : `${t('patrolsRemaining')}: ${gameState.inspectionsRemaining}`}
                     >
-                        👮 巡回{repairMode ? ' ON' : ''} ({gameState.inspectionsRemaining}/{GAME_CONFIG.REPAIRS_PER_DAY})
+                        👮 {t('patrolLabel')}{repairMode ? ' ON' : ''} ({gameState.inspectionsRemaining}/{GAME_CONFIG.REPAIRS_PER_DAY})
                     </button>
                     <span className="stage-info" style={{ fontWeight: 'bold', color: '#f1c40f' }}>
                         STAGE {gameState.currentStage}
                     </span>
                     <span className="day">Day {gameState.day} / {GAME_CONFIG.TOTAL_DAYS}</span>
                     <span className={`time-of-day ${gameState.timeOfDay}`}>
-                        {gameState.timeOfDay === 'day' ? '☀️ 昼' : '🌙 夜'}
+                        {gameState.timeOfDay === 'day' ? `☀️ ${t('dayLabel')}` : `🌙 ${t('nightLabel')}`}
                     </span>
                     <span className="time-remaining">
-                        残り {gameState.timeRemaining}秒
+                        {t('timeRemaining')(gameState.timeRemaining)}
                     </span>
                 </div>
                 <div className="header-right">
+                    {langToggle}
                     <button
                         className="help-toggle-btn"
                         onClick={() => setShowHelp(true)}
-                        title="遊び方"
+                        title={t('howToPlayTooltip')}
                     >
                         ?
                     </button>
@@ -288,7 +319,7 @@ function App() {
             </header>
             {repairMode && (
                 <div className="patrol-hint">
-                    ⚠️ 巡回モード: 部屋をクリックして脱獄度を0にする
+                    {t('patrolModeHint')}
                 </div>
             )}
 
@@ -304,9 +335,9 @@ function App() {
                 }}
             >
                 <h2>
-                    📥 待機エリア ({gameState.waitingPrisoners.length}/{GAME_CONFIG.MAX_WAITING_PRISONERS})
+                    {t('waitingAreaTitle')} ({gameState.waitingPrisoners.length}/{GAME_CONFIG.MAX_WAITING_PRISONERS})
                     <span style={{ marginLeft: '20px', fontSize: '0.9rem', color: '#95a5a6' }}>
-                        次の囚人まで: {spawnTimer}秒
+                        {t('nextPrisoner')(spawnTimer)}
                     </span>
                 </h2>
                 <div className="waiting-prisoners">
@@ -327,7 +358,7 @@ function App() {
                     ))}
                     {gameState.waitingPrisoners.length === 0 && (
                         <div style={{ color: '#7f8c8d', padding: '20px' }}>
-                            待機中の囚人はいません
+                            {t('noPrisoners')}
                         </div>
                     )}
                 </div>
@@ -342,7 +373,7 @@ function App() {
                     marginBottom: '15px',
                     color: '#f39c12'
                 }}>
-                    ⚠️ 狼男🐺とバンパイア🧛を同室にすると脱獄度が急上昇します！
+                    {t('compatWarning')}
                 </div>
             )}
 
@@ -366,12 +397,12 @@ function App() {
                             }}
                         >
                             <div className="room-header">
-                                <span className="room-number">部屋 {room.id + 1}</span>
+                                <span className="room-number">{t('roomLabel')(room.id + 1)}</span>
                                 {hasIncompatible && (
-                                    <span title="相性悪い組み合わせ！" style={{ color: '#e74c3c' }}>⚠️</span>
+                                    <span title={t('incompatiblePair')} style={{ color: '#e74c3c' }}>⚠️</span>
                                 )}
                                 {room.hasMoonlight && (
-                                    <span className="moonlight-indicator" title="夜に月光が差し込む">
+                                    <span className="moonlight-indicator" title={t('moonlightTooltip')}>
                                         🌙
                                     </span>
                                 )}
@@ -414,16 +445,16 @@ function App() {
                                                 color: getEscapeColor(prisoner.escapeProgress),
                                                 marginTop: '4px'
                                             }}>
-                                                脱獄度: {Math.min(Math.round(prisoner.escapeProgress), 100)}%
+                                                {t('escapeLabel')(Math.min(Math.round(prisoner.escapeProgress), 100))}
                                             </div>
                                         )}
                                     </div>
                                 ))}
                                 {room.prisoners.length === 0 && (
                                     <div className="room-empty">
-                                        空室
-                                        {selectedPrisonerId && <div style={{ marginTop: '10px' }}>クリックで配置</div>}
-                                        {repairMode && <div style={{ marginTop: '10px', color: '#3498db' }}>巡回する</div>}
+                                        {t('emptyRoom')}
+                                        {selectedPrisonerId && <div style={{ marginTop: '10px' }}>{t('clickToAssign')}</div>}
+                                        {repairMode && <div style={{ marginTop: '10px', color: '#3498db' }}>{t('patrolRoom')}</div>}
                                     </div>
                                 )}
                             </div>
@@ -437,10 +468,10 @@ function App() {
             {(gameState.phase === 'result') && (
                 <div className="game-overlay">
                     <div className={`game-result ${gameState.isVictory ? 'victory' : 'game-over'}`}>
-                        <h2>{gameState.isVictory ? '🎉 勝利！' : '💀 ゲームオーバー'}</h2>
+                        <h2>{gameState.isVictory ? t('victoryTitle') : t('gameOverTitle')}</h2>
                         <p>
                             {gameState.isVictory
-                                ? '3日間、暴動を防ぎました！'
+                                ? t('victoryMsg')
                                 : gameState.gameOverReason}
                         </p>
 
@@ -449,8 +480,8 @@ function App() {
                             <button
                                 onClick={() => {
                                     const text = gameState.isVictory
-                                        ? `囚人管理シミュレーター(Stage ${gameState.currentStage})をクリアしました！暴動を防ぎきった！`
-                                        : `囚人管理シミュレーター(Stage ${gameState.currentStage})でゲームオーバー... ${gameState.gameOverReason}`;
+                                        ? t('tweetVictory')(gameState.currentStage)
+                                        : t('tweetDefeat')(gameState.currentStage, gameState.gameOverReason || '');
                                     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " #PrisonerManager");
                                     window.open(url, '_blank');
                                 }}
@@ -469,16 +500,16 @@ function App() {
                                     margin: '0 auto'
                                 }}
                             >
-                                🐦 結果をポストする
+                                {t('postResult')}
                             </button>
                         </div>
 
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
                             <button className="restart-button" onClick={handleRestart}>
-                                🔄 もう一度 ({gameState.currentStage === 1 ? 'Normal' : 'Hard'})
+                                {t('retryBtn')(gameState.currentStage === 1 ? 'Normal' : 'Hard')}
                             </button>
                             <button className="restart-button" onClick={handleBackToTitle} style={{ background: '#95a5a6' }}>
-                                🏠 タイトルへ
+                                {t('titleBtn')}
                             </button>
                         </div>
                     </div>
