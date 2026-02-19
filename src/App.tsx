@@ -192,17 +192,8 @@ function App() {
     const langToggle = (
         <button
             onClick={toggleLanguage}
-            style={{
-                background: 'none',
-                border: '2px solid rgba(255,255,255,0.3)',
-                color: 'white',
-                padding: '4px 12px',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 'bold',
-            }}
             title={lang === 'ja' ? 'Switch to English' : '日本語に切替'}
+            style={{ fontSize: '0.6rem', padding: '4px 10px' }}
         >
             {lang === 'ja' ? 'EN' : 'JA'}
         </button>
@@ -211,30 +202,61 @@ function App() {
     // タイトル画面
     if (gameState.phase === 'title') {
         return (
-            <div className="game-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh',
+                flexDirection: 'column',
+                gap: '24px',
+                background: '#0d0d0d',
+                fontFamily: "'Press Start 2P', monospace",
+            }}>
+                {/* 言語切替 */}
+                <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
                     {langToggle}
                 </div>
-                <h1 style={{ fontSize: '3rem', marginBottom: '20px', textAlign: 'center' }}>
-                    {t('gameTitle')}
-                </h1>
 
-                <div style={{ display: 'flex', gap: '20px', flexDirection: 'column', width: '300px' }}>
+                {/* タイトル */}
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                        fontSize: '0.7rem',
+                        color: '#666',
+                        marginBottom: '8px',
+                        letterSpacing: '4px'
+                    }}>- PRESENTS -</div>
+                    <h1 style={{
+                        fontSize: 'clamp(1.2rem, 4vw, 2rem)',
+                        color: '#ffdd00',
+                        textShadow: '4px 4px 0 #000, -2px -2px 0 #664400',
+                        lineHeight: 1.6,
+                        letterSpacing: '2px'
+                    }}>
+                        {t('gameTitle')}
+                    </h1>
+                    <div style={{
+                        marginTop: '12px',
+                        fontSize: '0.6rem',
+                        color: '#888',
+                        animation: 'blink-cursor 1s step-end infinite'
+                    }}>▼ SELECT STAGE ▼</div>
+                </div>
+
+                {/* ステージ選択 */}
+                <div style={{ display: 'flex', gap: '16px', flexDirection: 'column', width: 'min(320px, 88vw)' }}>
                     <button
                         onClick={() => handleStartGame(1)}
                         style={{
-                            padding: '20px',
-                            fontSize: '1.2rem',
-                            cursor: 'pointer',
-                            background: '#2ecc71',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '10px',
-                            boxShadow: '0 4px 0 #27ae60'
+                            padding: '16px',
+                            fontSize: '0.7rem',
+                            background: '#0a2a0a',
+                            borderColor: '#22cc44',
+                            color: '#22cc44',
+                            lineHeight: 1.8
                         }}
                     >
-                        {t('stage1Label')}
-                        <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
+                        ▶ {t('stage1Label')}
+                        <div style={{ fontSize: '0.55rem', color: '#aaa', marginTop: '6px' }}>
                             {t('stage1Desc')}
                         </div>
                     </button>
@@ -242,43 +264,43 @@ function App() {
                     <button
                         disabled={true}
                         style={{
-                            padding: '20px',
-                            fontSize: '1.2rem',
-                            cursor: 'not-allowed',
-                            background: '#95a5a6',
-                            color: '#bdc3c7',
-                            border: 'none',
-                            borderRadius: '10px',
-                            boxShadow: 'none'
+                            padding: '16px',
+                            fontSize: '0.7rem',
+                            background: '#111',
+                            borderColor: '#444',
+                            color: '#444',
+                            lineHeight: 1.8
                         }}
                     >
-                        {t('stage2Label')}
-                        <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
+                        🔒 {t('stage2Label')}
+                        <div style={{ fontSize: '0.55rem', marginTop: '6px' }}>
                             {t('stage2Desc')}
                         </div>
                     </button>
                 </div>
 
+                {/* ヘルプ */}
                 <button
                     onClick={() => setShowHelp(true)}
                     style={{
-                        marginTop: '10px',
-                        background: 'none',
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        color: 'white',
+                        fontSize: '0.6rem',
                         padding: '10px 20px',
-                        borderRadius: '20px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        fontSize: '1rem'
+                        background: 'none',
+                        borderColor: '#888',
+                        color: '#aaa'
                     }}
                 >
-                    {t('howToPlayBtn')}
+                    ? {t('howToPlayBtn')}
                 </button>
 
                 {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
+                <style>{`
+                  @keyframes blink-cursor {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0; }
+                  }
+                `}</style>
             </div>
         );
     }
@@ -414,19 +436,14 @@ function App() {
 
                             {/* 脱獄度バー */}
                             {room.prisoners.length > 0 && (
-                                <div style={{
-                                    background: 'rgba(0,0,0,0.3)',
-                                    borderRadius: '4px',
-                                    height: '8px',
-                                    marginBottom: '10px',
-                                    overflow: 'hidden'
-                                }}>
-                                    <div style={{
-                                        width: `${Math.min(maxEscape, 100)}%`,
-                                        height: '100%',
-                                        background: getEscapeColor(maxEscape),
-                                        transition: 'width 0.3s, background 0.3s'
-                                    }} />
+                                <div className="escape-bar-wrap">
+                                    <div
+                                        className="escape-bar-fill"
+                                        style={{
+                                            width: `${Math.min(maxEscape, 100)}%`,
+                                            background: getEscapeColor(maxEscape),
+                                        }}
+                                    />
                                 </div>
                             )}
 
@@ -477,7 +494,7 @@ function App() {
                         </p>
 
                         {/* Tweet Button */}
-                        <div style={{ marginTop: '15px' }}>
+                        <div style={{ marginTop: '16px' }}>
                             <button
                                 onClick={() => {
                                     const text = gameState.isVictory
@@ -487,21 +504,16 @@ function App() {
                                     window.open(url, '_blank');
                                 }}
                                 style={{
-                                    background: '#1DA1F2',
-                                    color: 'white',
-                                    border: 'none',
+                                    background: '#0a1a2a',
+                                    borderColor: '#1DA1F2',
+                                    color: '#1DA1F2',
+                                    fontSize: '0.6rem',
                                     padding: '8px 16px',
-                                    borderRadius: '20px',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.9rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    margin: '0 auto'
+                                    margin: '0 auto',
+                                    display: 'block'
                                 }}
                             >
-                                {t('postResult')}
+                                🐦 {t('postResult')}
                             </button>
                         </div>
 

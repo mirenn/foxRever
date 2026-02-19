@@ -1,149 +1,243 @@
+/* =========================================
+   PIXEL ART / 8-BIT THEME
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  image-rendering: pixelated;
+}
+
+:root {
+  --pixel-black: #0d0d0d;
+  --pixel-dark: #1a1a2a;
+  --pixel-mid: #2a2a3a;
+  --pixel-panel: #1e1e2e;
+  --pixel-border: #4a4a6a;
+  --pixel-light: #c0c0d0;
+  --pixel-white: #e8e8f0;
+
+  --col-green: #22cc44;
+  --col-red: #dd2222;
+  --col-yellow: #ffdd00;
+  --col-blue: #3388ff;
+  --col-purple: #9944cc;
+  --col-orange: #ff8800;
+  --col-cyan: #00ccee;
 }
 
 body {
-  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  background-color: var(--pixel-black);
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.015) 3px,
+      rgba(255, 255, 255, 0.015) 4px);
   min-height: 100vh;
-  color: #e4e4e4;
+  color: var(--pixel-white);
+  font-size: 10px;
+  line-height: 1.8;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* ゲームコンテナ */
+/* ─── ピクセルボックス共通ミックスイン相当 ─── */
+.px-box {
+  border: 3px solid var(--pixel-border);
+  box-shadow: 4px 4px 0 #000;
+  background: var(--pixel-panel);
+}
+
+/* ─── ゲームコンテナ ─── */
 .game-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 10px 20px;
+  padding: 10px 16px;
 }
 
-/* ヘッダー */
+/* ─── ヘッダー ─── */
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  background: var(--pixel-panel);
+  border: 3px solid var(--pixel-border);
+  box-shadow: 4px 4px 0 #000;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 1.1rem;
+  gap: 14px;
+  font-size: 0.75rem;
   flex-wrap: wrap;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-.patrol-btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  border-radius: 8px;
+/* ─── ボタン共通（ピクセルスタイル） ─── */
+button {
+  font-family: 'Press Start 2P', monospace;
+  border: 3px solid var(--pixel-white);
+  background: var(--pixel-mid);
+  color: var(--pixel-white);
   cursor: pointer;
-  transition: all 0.2s;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #000;
+  transition: transform 0.05s, box-shadow 0.05s;
+  padding: 6px 12px;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+button:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #000;
+  background: var(--pixel-border);
+}
+
+button:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0 #000;
+}
+
+/* ─── 巡回ボタン ─── */
+.patrol-btn {
+  border-color: var(--col-blue);
+  color: var(--col-blue);
   white-space: nowrap;
 }
 
-.patrol-btn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+.patrol-btn:hover:not(:disabled) {
+  background: rgba(51, 136, 255, 0.2);
 }
 
 .patrol-btn.active {
-  background: #e74c3c;
-  animation: pulse-red 2s infinite;
+  border-color: var(--col-red);
+  color: var(--col-red);
+  animation: blink-border 0.8s step-end infinite;
+}
+
+@keyframes blink-border {
+
+  0%,
+  100% {
+    border-color: var(--col-red);
+  }
+
+  50% {
+    border-color: #660000;
+  }
 }
 
 .patrol-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(0.5);
+  border-color: #555;
+  color: #555;
 }
 
 .patrol-hint {
-  background: rgba(243, 156, 18, 0.15);
-  color: #f39c12;
-  padding: 6px 14px;
-  border-radius: 8px;
+  background: rgba(255, 136, 0, 0.15);
+  border: 2px solid var(--col-orange);
+  color: var(--col-orange);
+  padding: 5px 12px;
   margin-bottom: 8px;
-  font-size: 0.85rem;
+  font-size: 0.6rem;
   text-align: center;
+  box-shadow: 2px 2px 0 #000;
 }
 
+/* ─── タイトル h1 ─── */
 .game-header h1 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  background: linear-gradient(90deg, #f39c12, #e74c3c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.4rem;
+  margin-bottom: 0;
+  color: var(--col-yellow);
+  text-shadow: 3px 3px 0 #000, -1px -1px 0 #664400;
 }
 
-/* 時間表示 */
-.time-display {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  font-size: 1.1rem;
+/* ─── 時間表示 ─── */
+.stage-info {
+  color: var(--col-yellow);
+  text-shadow: 2px 2px 0 #000;
 }
 
-.time-display .day {
-  color: #3498db;
+.day {
+  color: var(--col-cyan);
 }
 
-.time-display .time-of-day {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: bold;
+.time-of-day {
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  border: 2px solid;
+  box-shadow: 2px 2px 0 #000;
 }
 
-.time-display .time-of-day.day {
-  background: linear-gradient(135deg, #f1c40f, #f39c12);
-  color: #1a1a2e;
+.time-of-day.day {
+  background: #332200;
+  border-color: var(--col-yellow);
+  color: var(--col-yellow);
 }
 
-.time-display .time-of-day.night {
-  background: linear-gradient(135deg, #2c3e50, #1a1a2e);
-  color: #9b59b6;
-  border: 2px solid #9b59b6;
+.time-of-day.night {
+  background: #110022;
+  border-color: var(--col-purple);
+  color: var(--col-purple);
 }
 
 .time-remaining {
-  font-size: 1.5rem;
+  font-size: 0.75rem;
   font-weight: bold;
-  color: #e74c3c;
+  color: var(--col-red);
+  text-shadow: 2px 2px 0 #000;
+  animation: pulse-text 1s step-end infinite;
 }
 
-/* 待機エリア */
+@keyframes pulse-text {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ─── 待機エリア ─── */
 .waiting-area {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 12px;
+  background: var(--pixel-panel);
+  border: 3px solid var(--pixel-border);
+  box-shadow: 4px 4px 0 #000;
+  padding: 10px 12px;
   margin-bottom: 10px;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
 }
 
 .waiting-area h2 {
-  font-size: 1.1rem;
+  font-size: 0.65rem;
   margin-bottom: 10px;
-  color: #f39c12;
+  color: var(--col-orange);
+  text-shadow: 2px 2px 0 #000;
+  letter-spacing: 1px;
 }
 
 .waiting-prisoners {
@@ -153,143 +247,139 @@ body {
   min-height: 60px;
 }
 
-/* 囚人カード */
+/* ─── 囚人カード ─── */
 .prisoner-card {
-  background: linear-gradient(145deg, #2d3436, #1e272e);
-  border-radius: 12px;
-  padding: 10px;
-  width: 110px;
+  background: var(--pixel-mid);
+  border: 3px solid var(--pixel-border);
+  box-shadow: 3px 3px 0 #000;
+  padding: 8px;
+  width: 108px;
   text-align: center;
   cursor: grab;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
+  transition: transform 0.05s, box-shadow 0.05s;
+  border-radius: 0;
 }
 
 .prisoner-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translate(-1px, -2px);
+  box-shadow: 4px 5px 0 #000;
 }
 
 .prisoner-card.selected {
-  border-color: #3498db;
-  box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+  border-color: var(--col-blue);
+  box-shadow: 3px 3px 0 var(--col-blue), 0 0 12px rgba(51, 136, 255, 0.4);
 }
 
 .prisoner-card.normal {
-  border-bottom: 3px solid #27ae60;
+  border-bottom: 4px solid var(--col-green);
 }
 
 .prisoner-card.werewolf {
-  border-bottom: 3px solid #9b59b6;
-  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-bottom: 4px solid var(--col-purple);
 }
 
 .prisoner-card.strong {
-  border-bottom: 3px solid #e74c3c;
+  border-bottom: 4px solid var(--col-red);
+}
+
+.prisoner-card.vampire {
+  border-bottom: 4px solid #cc3333;
 }
 
 .prisoner-icon {
   font-size: 2rem;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .prisoner-img {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   image-rendering: pixelated;
-  border-radius: 6px;
-  transition: transform 0.2s ease, filter 0.2s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform 0.1s;
 }
 
 .prisoner-card:hover .prisoner-img {
-  transform: scale(1.1);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  transform: scale(1.08);
 }
 
 .room .prisoner-img {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
 }
 
 .prisoner-name {
-  font-size: 0.85rem;
-  color: #bdc3c7;
+  font-size: 0.55rem;
+  color: var(--pixel-light);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .prisoner-type {
-  font-size: 0.7rem;
+  font-size: 0.5rem;
   margin-top: 5px;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 2px 5px;
   display: inline-block;
+  border: 2px solid;
 }
 
 .prisoner-type.normal {
-  background: rgba(39, 174, 96, 0.3);
-  color: #27ae60;
+  border-color: var(--col-green);
+  color: var(--col-green);
 }
 
 .prisoner-type.werewolf {
-  background: rgba(155, 89, 182, 0.3);
-  color: #9b59b6;
+  border-color: var(--col-purple);
+  color: var(--col-purple);
 }
 
 .prisoner-type.strong {
-  background: rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
-}
-
-.prisoner-card.vampire {
-  border-bottom: 3px solid #c0392b;
-  background: linear-gradient(145deg, #2d3436, #1e272e);
+  border-color: var(--col-red);
+  color: var(--col-red);
 }
 
 .prisoner-type.vampire {
-  background: rgba(192, 57, 43, 0.3);
-  color: #c0392b;
+  border-color: #cc3333;
+  color: #cc3333;
 }
 
-/* 部屋グリッド */
+/* ─── 部屋グリッド ─── */
 .prison-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
-/* 部屋 */
-/* 部屋 */
+/* ─── 部屋 ─── */
 .room {
   background-color: #2f3542;
   background-image: url('/images/cell_wall_tile.png');
   background-size: cover;
   background-position: center;
   image-rendering: pixelated;
-
-  border-radius: 8px;
-  padding: 10px;
-  min-height: 150px;
   border: 4px solid #57606f;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
-  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 #000;
+  padding: 8px;
+  min-height: 150px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.1s;
 }
 
 .room:hover {
-  border-color: rgba(52, 152, 219, 0.8);
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(52, 152, 219, 0.3);
+  border-color: var(--col-blue);
 }
 
 .room.moonlight {
   background-color: #38304c;
 }
 
-/* 窓枠 (barred window) */
+/* 窓枠 */
 .room.moonlight::before {
   content: '';
   position: absolute;
@@ -299,13 +389,11 @@ body {
   height: 56px;
   border-radius: 24px 24px 2px 2px;
   background:
-    /* vertical bars */
     linear-gradient(90deg,
       transparent 10px, #5a5a6a 10px, #5a5a6a 13px,
       transparent 13px, transparent 22px, #5a5a6a 22px, #5a5a6a 25px,
       transparent 25px, transparent 34px, #5a5a6a 34px, #5a5a6a 37px,
       transparent 37px),
-    /* horizontal bar */
     linear-gradient(180deg,
       transparent 24px, #5a5a6a 24px, #5a5a6a 27px, transparent 27px);
   background-color: #6ba3c7;
@@ -316,7 +404,7 @@ body {
   transition: background-color 0.5s, box-shadow 0.5s;
 }
 
-/* 月 (moon disc) */
+/* 月 */
 .room.moonlight::after {
   content: '';
   position: absolute;
@@ -334,10 +422,9 @@ body {
 }
 
 .room.moonlight.night {
-  border-color: #9b59b6;
-  box-shadow: inset 0 0 30px rgba(155, 89, 182, 0.4), 0 0 20px rgba(155, 89, 182, 0.3);
+  border-color: var(--col-purple);
+  box-shadow: 4px 4px 0 #000, 0 0 16px rgba(153, 68, 204, 0.4);
   animation: moonlightPulse 3s ease-in-out infinite;
-  /* 月光ビーム: タイル画像の上に斜めの光を重ねる */
   background-image:
     linear-gradient(135deg,
       transparent 20%,
@@ -348,121 +435,182 @@ body {
     url('/images/cell_wall_tile.png');
 }
 
-/* 夜の窓 — 夜空色に変化 */
 .room.moonlight.night::before {
   background-color: #0d1b3e;
   border-color: #6a5a8a;
-  box-shadow:
-    inset 0 0 12px rgba(100, 80, 180, 0.5),
-    0 0 20px rgba(155, 89, 182, 0.3);
+  box-shadow: inset 0 0 12px rgba(100, 80, 180, 0.5), 0 0 20px rgba(153, 68, 204, 0.3);
 }
 
-/* 夜の月 — 表示 + glow */
 .room.moonlight.night::after {
   opacity: 1;
-  box-shadow:
-    0 0 8px 3px rgba(245, 230, 163, 0.6),
-    0 0 20px 6px rgba(200, 180, 120, 0.3);
+  box-shadow: 0 0 8px 3px rgba(245, 230, 163, 0.6), 0 0 20px 6px rgba(200, 180, 120, 0.3);
 }
-
 
 @keyframes moonlightPulse {
 
   0%,
   100% {
-    box-shadow: inset 0 0 30px rgba(155, 89, 182, 0.4), 0 0 20px rgba(155, 89, 182, 0.3);
+    box-shadow: 4px 4px 0 #000, 0 0 16px rgba(153, 68, 204, 0.4);
   }
 
   50% {
-    box-shadow: inset 0 0 50px rgba(155, 89, 182, 0.6), 0 0 30px rgba(155, 89, 182, 0.5);
+    box-shadow: 4px 4px 0 #000, 0 0 28px rgba(153, 68, 204, 0.7);
   }
 }
 
+/* ─── 部屋ヘッダー ─── */
 .room-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  padding: 5px 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  margin-bottom: 6px;
+  padding: 3px 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border-bottom: 2px solid var(--pixel-border);
 }
 
 .room-number {
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  color: #ecf0f1;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  color: var(--pixel-white);
+  text-shadow: 1px 1px 0 #000;
 }
 
 .room-capacity {
-  font-size: 0.8rem;
-  color: #95a5a6;
-  font-family: monospace;
+  font-size: 0.55rem;
+  color: var(--pixel-light);
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
 }
 
 .moonlight-indicator {
   position: relative;
   z-index: 2;
-  /* Ensure it's above the background */
-  font-size: 1.2rem;
-  filter: drop-shadow(0 0 5px rgba(155, 89, 182, 0.8));
+  font-size: 1rem;
+  filter: drop-shadow(0 0 4px rgba(153, 68, 204, 0.9));
 }
 
+/* ─── 部屋内囚人配置 ─── */
 .room-prisoners {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   min-height: 80px;
-  /* Ensure drop area has size */
 }
 
 .room .prisoner-card {
   width: 48%;
-  min-width: 80px;
-  padding: 8px 4px;
+  min-width: 76px;
+  padding: 6px 4px;
   cursor: default;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 2px 0 #000;
   z-index: 1;
 }
 
+/* ─── 脱獄度バー（ピクセル矩形） ─── */
+.escape-bar-wrap {
+  background: #111;
+  border: 2px solid var(--pixel-border);
+  height: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 0 #000;
+}
+
+.escape-bar-fill {
+  height: 100%;
+  transition: width 0.3s step-end, background 0.3s;
+}
+
+/* ─── 空室表示 ─── */
 .room-empty {
-  color: #7f8c8d;
+  color: #556;
   text-align: center;
-  padding: 20px;
-  font-size: 0.9rem;
+  padding: 16px 8px;
+  font-size: 0.55rem;
   width: 100%;
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  border: 2px dashed #334;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.1);
-  transition: all 0.2s;
+  background: rgba(0, 0, 0, 0.2);
 }
 
-/* Highlight empty room when dragging */
 .room.valid-target .room-empty {
-  border-color: #2ecc71;
-  background: rgba(46, 204, 113, 0.1);
-  color: #2ecc71;
-  transform: scale(0.98);
+  border-color: var(--col-green);
+  color: var(--col-green);
 }
 
-/* ゲームオーバー・勝利画面 */
+/* ─── ドロップ先ハイライト ─── */
+.prison-grid .room.valid-target {
+  border-color: var(--col-green) !important;
+  box-shadow: 4px 4px 0 #000, 0 0 12px rgba(34, 204, 68, 0.5) !important;
+  cursor: pointer;
+  animation: blink-green 0.6s step-end infinite;
+}
+
+@keyframes blink-green {
+
+  0%,
+  100% {
+    box-shadow: 4px 4px 0 #000, 0 0 12px rgba(34, 204, 68, 0.5);
+  }
+
+  50% {
+    box-shadow: 4px 4px 0 #000, 0 0 0 rgba(34, 204, 68, 0.0);
+  }
+}
+
+.room.invalid-target {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #444 !important;
+}
+
+.room-full-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #000;
+  border: 2px solid var(--col-red);
+  color: var(--col-red);
+  padding: 4px 8px;
+  font-size: 0.55rem;
+  box-shadow: 2px 2px 0 #000;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ─── インタラクティブカード点滅 ─── */
+.prisoner-card.interactive {
+  animation: blink-card 1s step-end infinite;
+  cursor: pointer;
+}
+
+@keyframes blink-card {
+
+  0%,
+  100% {
+    border-color: var(--col-blue);
+  }
+
+  50% {
+    border-color: var(--pixel-border);
+  }
+}
+
+/* ─── ゲームオーバー・勝利画面 ─── */
 .game-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.92);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -471,58 +619,171 @@ body {
 
 .game-result {
   text-align: center;
-  padding: 50px;
-  border-radius: 20px;
-  animation: fadeIn 0.5s ease;
+  padding: 40px 48px;
+  background: var(--pixel-panel);
+  border: 4px solid var(--pixel-border);
+  box-shadow: 8px 8px 0 #000;
+  animation: pop-in 0.15s steps(3) both;
 }
 
-@keyframes fadeIn {
+@keyframes pop-in {
   from {
+    transform: scale(0.7);
     opacity: 0;
-    transform: scale(0.9);
   }
 
   to {
-    opacity: 1;
     transform: scale(1);
+    opacity: 1;
   }
 }
 
 .game-result.victory {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  border-color: var(--col-green);
+  box-shadow: 8px 8px 0 #000, 0 0 20px rgba(34, 204, 68, 0.4);
 }
 
 .game-result.game-over {
-  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  border-color: var(--col-red);
+  box-shadow: 8px 8px 0 #000, 0 0 20px rgba(221, 34, 34, 0.4);
 }
 
 .game-result h2 {
-  font-size: 3rem;
+  font-size: 1.4rem;
   margin-bottom: 20px;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.game-result.victory h2 {
+  color: var(--col-green);
+}
+
+.game-result.game-over h2 {
+  color: var(--col-red);
 }
 
 .game-result p {
-  font-size: 1.2rem;
-  margin-bottom: 30px;
+  font-size: 0.65rem;
+  margin-bottom: 24px;
+  color: var(--pixel-light);
+  line-height: 2;
 }
 
 .restart-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid white;
-  color: white;
-  padding: 15px 40px;
-  font-size: 1.2rem;
-  border-radius: 30px;
+  background: var(--pixel-mid);
+  border: 3px solid var(--pixel-white);
+  color: var(--pixel-white);
+  padding: 12px 28px;
+  font-size: 0.65rem;
+  box-shadow: 3px 3px 0 #000;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .restart-button:hover {
-  background: white;
-  color: #1a1a2e;
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #000;
+  background: var(--pixel-border);
 }
 
-/* 警告アニメーション */
+/* ─── ヘルプモーダル ─── */
+.help-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.help-modal {
+  background: var(--pixel-panel);
+  border: 4px solid var(--col-blue);
+  box-shadow: 8px 8px 0 #000;
+  padding: 28px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: var(--pixel-white);
+}
+
+.help-modal h2 {
+  color: var(--col-blue);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 0.75rem;
+  border-bottom: 2px solid var(--pixel-border);
+  padding-bottom: 12px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.help-step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid var(--pixel-border);
+  padding: 12px;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.help-step-icon {
+  font-size: 2rem;
+  min-width: 52px;
+  text-align: center;
+  margin-right: 12px;
+}
+
+.help-step-text {
+  flex: 1;
+  font-size: 0.6rem;
+  line-height: 2;
+}
+
+.help-close-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--col-blue);
+  color: #000;
+  border: 3px solid #fff;
+  font-size: 0.65rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 16px;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.help-close-btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.help-toggle-btn {
+  background: var(--pixel-mid);
+  border: 2px solid var(--pixel-white);
+  color: var(--pixel-white);
+  width: 32px;
+  height: 32px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.help-toggle-btn:hover {
+  background: var(--pixel-border);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+/* ─── アニメーション（shake / pulse） ─── */
 @keyframes shake {
 
   10%,
@@ -538,196 +799,23 @@ body {
   30%,
   50%,
   70% {
-    transform: translate3d(-4px, 0, 0);
+    transform: translate3d(-3px, 0, 0);
   }
 
   40%,
   60% {
-    transform: translate3d(4px, 0, 0);
+    transform: translate3d(3px, 0, 0);
   }
 }
 
 @keyframes pulse-red {
-  0% {
-    background-color: rgba(231, 76, 60, 0.05);
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+
+  0%,
+  100% {
+    box-shadow: 4px 4px 0 #000, 0 0 8px rgba(221, 34, 34, 0.3);
   }
 
   50% {
-    background-color: rgba(231, 76, 60, 0.25);
-    box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
+    box-shadow: 4px 4px 0 #000, 0 0 20px rgba(221, 34, 34, 0.7);
   }
-
-  100% {
-    background-color: rgba(231, 76, 60, 0.05);
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
-  }
-}
-
-/* 視覚的誘導（Visual Cues） */
-@keyframes pulse-highlight {
-  0% {
-    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
-    transform: scale(1);
-  }
-
-  70% {
-    box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
-    transform: scale(1.05);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
-    transform: scale(1);
-  }
-}
-
-.prisoner-card.interactive {
-  animation: pulse-highlight 2s infinite;
-  cursor: pointer;
-  border-color: #3498db;
-}
-
-/* .prison-grid .room を詳細度で上回るように修正 */
-.prison-grid .room.valid-target {
-  border-color: #2ecc71 !important;
-  background: rgba(46, 204, 113, 0.1);
-  box-shadow: 0 0 15px rgba(46, 204, 113, 0.5) !important;
-  cursor: pointer;
-  animation: pulse-green 1.5s infinite;
-  opacity: 1;
-  filter: none;
-}
-
-@keyframes pulse-green {
-  0% {
-    box-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
-  }
-
-  100% {
-    box-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
-  }
-}
-
-.room.invalid-target {
-  opacity: 0.5;
-  filter: grayscale(0.8);
-  cursor: not-allowed;
-  border-color: #7f8c8d;
-}
-
-.room-full-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: #e74c3c;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-weight: bold;
-  pointer-events: none;
-  z-index: 10;
-}
-
-/* ヘルプモーダル */
-.help-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  backdrop-filter: blur(5px);
-}
-
-.help-modal {
-  background: linear-gradient(135deg, #2c3e50, #1a1a2e);
-  border: 2px solid #3498db;
-  border-radius: 16px;
-  padding: 30px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 0 30px rgba(52, 152, 219, 0.3);
-  color: #ecf0f1;
-}
-
-.help-modal h2 {
-  color: #3498db;
-  text-align: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 15px;
-}
-
-.help-step {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 10px;
-}
-
-.help-step-icon {
-  font-size: 2.5rem;
-  min-width: 60px;
-  text-align: center;
-  margin-right: 15px;
-}
-
-.help-step-text {
-  flex: 1;
-  font-size: 1.1rem;
-}
-
-.help-close-btn {
-  display: block;
-  width: 100%;
-  padding: 15px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: background 0.2s;
-}
-
-.help-close-btn:hover {
-  background: #2980b9;
-}
-
-.help-toggle-btn {
-  background: none;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.help-toggle-btn:hover {
-  background: white;
-  color: #1a1a2e;
-  border-color: white;
 }
