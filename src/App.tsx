@@ -11,6 +11,7 @@ import {
     roomHasIncompatiblePair,
 } from './gameLogic';
 import { t, getLanguage, setLanguage, Language } from './i18n';
+import { playStageStartSound } from './sound';
 
 const HelpModal = ({ onClose }: { onClose: () => void }) => (
     <div className="help-modal-overlay" onClick={onClose}>
@@ -245,7 +246,7 @@ function App() {
                 {/* ステージ選択 */}
                 <div style={{ display: 'flex', gap: '16px', flexDirection: 'column', width: 'min(320px, 88vw)' }}>
                     <button
-                        onClick={() => handleStartGame(1)}
+                        onClick={() => { playStageStartSound(); handleStartGame(1); }}
                         style={{
                             padding: '16px',
                             fontSize: '0.7rem',
