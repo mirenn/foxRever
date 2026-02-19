@@ -151,12 +151,13 @@ function App() {
     }, [gameState.currentStage]);
 
     // 囚人画像パス取得
+    const base = import.meta.env.BASE_URL;
     const getPrisonerImage = (type: string) => {
         switch (type) {
-            case 'werewolf': return '/images/werewolf_prisoner.png';
-            case 'vampire': return '/images/vampire_prisoner.png';
-            case 'strong': return '/images/normal_prisoner.png';
-            default: return '/images/normal_prisoner.png';
+            case 'werewolf': return `${base}images/werewolf_prisoner.png`;
+            case 'vampire': return `${base}images/vampire_prisoner.png`;
+            case 'strong': return `${base}images/normal_prisoner.png`;
+            default: return `${base}images/normal_prisoner.png`;
         }
     };
 
