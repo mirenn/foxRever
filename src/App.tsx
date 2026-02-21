@@ -11,7 +11,7 @@ import {
     roomHasIncompatiblePair,
 } from './gameLogic';
 import { t, getLanguage, setLanguage, Language } from './i18n';
-import { playStageStartSound, playDropSound, playWarningSound, playGameOverSound, playRepairSound } from './sound';
+import { playStageStartSound, playDropSound, playWarningSound, playGameOverSound, playRepairSound, startDayBGM, startNightBGM, stopBGM } from './sound';
 
 const HelpModal = ({ onClose }: { onClose: () => void }) => (
     <div className="help-modal-overlay" onClick={onClose}>
@@ -91,9 +91,20 @@ function App() {
                     playWarningSound();
                 }
 
-                // ゲームオーバーになったら音を鳴らす
+                // 時間帯変更時のBGM切り替え
+                if (prev.timeOfDay === 'night' && nextState.timeOfDay === 'day' && !nextState.isGameOver && !nextState.isVictory) {
+                    startDayBGM();
+                } else if (prev.timeOfDay === 'day' && nextState.timeOfDay === 'night' && !nextState.isGameOver && !nextState.isVictory) {
+                    startNightBGM();
+                }
+
+                // 勝利・敗北時にBGMを停止
                 if (!prev.isGameOver && nextState.isGameOver) {
+                    stopBGM();
                     playGameOverSound();
+                }
+                if (!prev.isVictory && nextState.isVictory) {
+                    stopBGM();
                 }
 
                 return nextState;
@@ -104,6 +115,7 @@ function App() {
                         const nextSpawnState = spawnPrisoner(prevState);
                         // スポーンによりゲームオーバーになった場合
                         if (!prevState.isGameOver && nextSpawnState.isGameOver) {
+                            stopBGM();
                             playGameOverSound();
                         }
                         return nextSpawnState;
@@ -123,6 +135,7 @@ function App() {
             setGameState(prev => {
                 const nextState = checkWerewolfEscape(prev);
                 if (!prev.isGameOver && nextState.isGameOver) {
+                    stopBGM();
                     playGameOverSound();
                 }
                 return nextState;
@@ -176,6 +189,8 @@ function App() {
         setSelectedPrisonerId(null);
         setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
         setRepairMode(false);
+        // 最初は必ずDayフェーズから始まるのでDay BGMを再生
+        startDayBGM();
     }, []);
 
     // タイトルに戻る
@@ -183,6 +198,7 @@ function App() {
         setGameState(createInitialState());
         setSelectedPrisonerId(null);
         setRepairMode(false);
+        stopBGM();
     }, []);
 
     // リスタート（同じステージ）
@@ -191,6 +207,7 @@ function App() {
         setSelectedPrisonerId(null);
         setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
         setRepairMode(false);
+        startDayBGM();
     }, [gameState.currentStage]);
 
     // 囚人画像パス取得
