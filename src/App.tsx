@@ -11,7 +11,7 @@ import {
     roomHasIncompatiblePair,
 } from './gameLogic';
 import { t, getLanguage, setLanguage, Language } from './i18n';
-import { playStageStartSound } from './sound';
+import { playStageStartSound, playDropSound, playWarningSound, playGameOverSound, playRepairSound } from './sound';
 
 const HelpModal = ({ onClose }: { onClose: () => void }) => (
     <div className="help-modal-overlay" onClick={onClose}>
@@ -81,10 +81,33 @@ function App() {
         if (gameState.phase !== 'playing') return;
 
         const interval = setInterval(() => {
-            setGameState(prev => tickTime(prev));
+            setGameState(prev => {
+                const nextState = tickTime(prev);
+
+                // 脱獄度が70を超えはじめたら警告音
+                const oldMaxEscape = Math.max(0, ...prev.rooms.flatMap(r => r.prisoners.map(p => p.escapeProgress)));
+                const newMaxEscape = Math.max(0, ...nextState.rooms.flatMap(r => r.prisoners.map(p => p.escapeProgress)));
+                if (oldMaxEscape < 70 && newMaxEscape >= 70 && !nextState.isGameOver) {
+                    playWarningSound();
+                }
+
+                // ゲームオーバーになったら音を鳴らす
+                if (!prev.isGameOver && nextState.isGameOver) {
+                    playGameOverSound();
+                }
+
+                return nextState;
+            });
             setSpawnTimer(prev => {
                 if (prev <= 1) {
-                    setGameState(prevState => spawnPrisoner(prevState));
+                    setGameState(prevState => {
+                        const nextSpawnState = spawnPrisoner(prevState);
+                        // スポーンによりゲームオーバーになった場合
+                        if (!prevState.isGameOver && nextSpawnState.isGameOver) {
+                            playGameOverSound();
+                        }
+                        return nextSpawnState;
+                    });
                     return GAME_CONFIG.PRISONER_SPAWN_INTERVAL;
                 }
                 return prev - 1;
@@ -97,7 +120,13 @@ function App() {
     // 夜になった瞬間に狼男チェック
     useEffect(() => {
         if (gameState.phase === 'playing' && gameState.timeOfDay === 'night' && !gameState.isGameOver) {
-            setGameState(prev => checkWerewolfEscape(prev));
+            setGameState(prev => {
+                const nextState = checkWerewolfEscape(prev);
+                if (!prev.isGameOver && nextState.isGameOver) {
+                    playGameOverSound();
+                }
+                return nextState;
+            });
         }
     }, [gameState.phase, gameState.timeOfDay, gameState.isGameOver]);
 
@@ -106,10 +135,23 @@ function App() {
         if (gameState.phase !== 'playing') return;
 
         if (repairMode) {
-            setGameState(prev => repairRoom(prev, roomId));
+            setGameState(prev => {
+                if (prev.inspectionsRemaining > 0) {
+                    playRepairSound();
+                    return repairRoom(prev, roomId);
+                }
+                return prev;
+            });
             setRepairMode(false);
         } else if (selectedPrisonerId) {
-            setGameState(prev => placePrisoner(prev, selectedPrisonerId, roomId));
+            setGameState(prev => {
+                const room = prev.rooms.find(r => r.id === roomId);
+                if (room && room.prisoners.length < room.capacity) {
+                    playDropSound();
+                    return placePrisoner(prev, selectedPrisonerId, roomId);
+                }
+                return prev;
+            });
             setSelectedPrisonerId(null);
         }
     }, [gameState.phase, selectedPrisonerId, repairMode]);
