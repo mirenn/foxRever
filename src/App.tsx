@@ -372,7 +372,7 @@ function App() {
                             onClick={() => handlePrisonerClick(prisoner.id)}
                         >
                             <div className="prisoner-icon">
-                                <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className="prisoner-img" />
+                                <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className={`prisoner-img ${gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? 'rampage' : ''}`} />
                             </div>
                             <div className="prisoner-name">{prisoner.name}</div>
                             <div className={`prisoner-type ${prisoner.type}`}>
@@ -452,7 +452,7 @@ function App() {
                                 {room.prisoners.map(prisoner => (
                                     <div key={prisoner.id} className={`prisoner-card ${prisoner.type}`}>
                                         <div className="prisoner-icon">
-                                            <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className="prisoner-img" />
+                                            <img src={getPrisonerImage(prisoner.type)} alt={getPrisonerIcon(prisoner.type)} className={`prisoner-img ${prisoner.escapeProgress >= 70 ? 'rampage' : ''}`} />
                                         </div>
                                         <div className="prisoner-name">{prisoner.name}</div>
                                         <div className={`prisoner-type ${prisoner.type}`}>
