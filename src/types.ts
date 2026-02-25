@@ -37,6 +37,9 @@ export interface GameState {
   isVictory: boolean;
   gameOverReason?: string;
   inspectionsRemaining: number; // 残り検査回数
+  guard: {
+    carrying: Prisoner | null;
+  };
 }
 
 // ゲーム設定

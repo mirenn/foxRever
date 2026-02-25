@@ -82,6 +82,9 @@ export function createInitialState(stage: number = 1): GameState {
     isGameOver: false,
     isVictory: false,
     inspectionsRemaining: GAME_CONFIG.REPAIRS_PER_DAY,
+    guard: {
+      carrying: null,
+    },
   };
 }
 
@@ -141,6 +144,51 @@ export function placePrisoner(
   return {
     ...state,
     waitingPrisoners: state.waitingPrisoners.filter(p => p.id !== prisonerId),
+    rooms: state.rooms.map(r =>
+      r.id === roomId
+        ? { ...r, prisoners: [...r.prisoners, prisoner] }
+        : r
+    ),
+  };
+}
+
+// 待機エリアの囚人を看守が持ち上げる
+export function pickUpPrisoner(
+  state: GameState,
+  prisonerId: string
+): GameState {
+  const prisonerIndex = state.waitingPrisoners.findIndex(p => p.id === prisonerId);
+  if (prisonerIndex === -1 || state.guard.carrying) return state;
+
+  const prisoner = state.waitingPrisoners[prisonerIndex];
+  const newWaitingPrisoners = [...state.waitingPrisoners];
+  newWaitingPrisoners.splice(prisonerIndex, 1);
+
+  return {
+    ...state,
+    waitingPrisoners: newWaitingPrisoners,
+    guard: {
+      carrying: prisoner,
+    },
+  };
+}
+
+// 看守が持ち上げている囚人を部屋に配置する
+export function dropOffPrisoner(
+  state: GameState,
+  roomId: number
+): GameState {
+  const room = state.rooms.find(r => r.id === roomId);
+  const prisoner = state.guard.carrying;
+
+  if (!room || !prisoner) return state;
+  if (room.prisoners.length >= room.capacity) return state; // もし満員なら配置できない（本来はクリック時弾く）
+
+  return {
+    ...state,
+    guard: {
+      carrying: null,
+    },
     rooms: state.rooms.map(r =>
       r.id === roomId
         ? { ...r, prisoners: [...r.prisoners, prisoner] }

@@ -9,9 +9,12 @@ import {
     checkWerewolfEscape,
     repairRoom,
     roomHasIncompatiblePair,
+    pickUpPrisoner,
+    dropOffPrisoner,
 } from './gameLogic';
 import { t, getLanguage, setLanguage, Language } from './i18n';
 import { playStageStartSound, playDropSound, playWarningSound, playGameOverSound, playRepairSound, startDayBGM, startNightBGM, stopBGM } from './sound';
+import { useRef } from 'react';
 
 const HelpModal = ({ onClose }: { onClose: () => void }) => (
     <div className="help-modal-overlay" onClick={onClose}>
@@ -68,6 +71,15 @@ function App() {
     const [repairMode, setRepairMode] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [lang, setLang] = useState<Language>(getLanguage());
+
+    // Stage 2: Guard Animation State & Refs
+    const [isGuardBusy, setIsGuardBusy] = useState(false);
+    // guardPos: 'idle'(巡回ボタン付近), 'waiting'(待機エリア), or number(roomId)
+    const [guardPos, setGuardPos] = useState<'idle' | 'waiting' | number>('idle');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const idleRef = useRef<HTMLButtonElement>(null);
+    const waitingRef = useRef<HTMLElement>(null);
+    const roomRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     // 言語切替
     const toggleLanguage = useCallback(() => {
@@ -147,41 +159,92 @@ function App() {
     const handleRoomClick = useCallback((roomId: number) => {
         if (gameState.phase !== 'playing') return;
 
+        // ステージ2: 看守が移動中の場合は操作をブロック
+        if (gameState.currentStage === 2 && isGuardBusy) return;
+
         if (repairMode) {
-            setGameState(prev => {
-                if (prev.inspectionsRemaining > 0) {
-                    playRepairSound();
-                    return repairRoom(prev, roomId);
+            if (gameState.currentStage === 2) {
+                // ステージ2: 巡回（移動アニメーション）
+                if (gameState.inspectionsRemaining > 0) {
+                    setIsGuardBusy(true);
+                    setRepairMode(false); // UI上のハイライトはすぐ消す
+                    setGuardPos(roomId);
+                    setTimeout(() => {
+                        playRepairSound();
+                        setGameState(prev => repairRoom(prev, roomId));
+                        setTimeout(() => {
+                            setGuardPos('idle');
+                            setIsGuardBusy(false);
+                        }, 200);
+                    }, 400); // 移動時間
                 }
-                return prev;
-            });
-            setRepairMode(false);
+            } else {
+                // ステージ1: 即時巡回
+                setGameState(prev => {
+                    if (prev.inspectionsRemaining > 0) {
+                        playRepairSound();
+                        return repairRoom(prev, roomId);
+                    }
+                    return prev;
+                });
+                setRepairMode(false);
+            }
         } else if (selectedPrisonerId) {
-            setGameState(prev => {
-                const room = prev.rooms.find(r => r.id === roomId);
-                if (room && room.prisoners.length < room.capacity) {
+            const room = gameState.rooms.find(r => r.id === roomId);
+            if (!room || room.prisoners.length >= room.capacity) return;
+
+            if (gameState.currentStage === 2) {
+                // ステージ2: 運搬アニメーション
+                setIsGuardBusy(true);
+                setSelectedPrisonerId(null);
+
+                // 1. 待機エリアへ移動
+                setGuardPos('waiting');
+                setTimeout(() => {
+                    // 2. 囚人をピックアップ（ここでstate更新してアイコンを持たせる）
+                    setGameState(prev => pickUpPrisoner(prev, selectedPrisonerId));
+                    playDropSound(); // ピックアップ音（仮）
+
+                    // 3. 対象の部屋へ移動
+                    setGuardPos(roomId);
+                    setTimeout(() => {
+                        // 4. 部屋に配置
+                        setGameState(prev => dropOffPrisoner(prev, roomId));
+                        playRepairSound(); // 配置完了音（仮）
+
+                        // 5. idle位置に戻る
+                        setGuardPos('idle');
+                        setTimeout(() => {
+                            setIsGuardBusy(false);
+                        }, 200);
+                    }, 400);
+                }, 400);
+            } else {
+                // ステージ1: 即時配置
+                setGameState(prev => {
                     playDropSound();
                     return placePrisoner(prev, selectedPrisonerId, roomId);
-                }
-                return prev;
-            });
-            setSelectedPrisonerId(null);
+                });
+                setSelectedPrisonerId(null);
+            }
         }
-    }, [gameState.phase, selectedPrisonerId, repairMode]);
+    }, [gameState.phase, gameState.currentStage, isGuardBusy, selectedPrisonerId, repairMode, gameState.rooms]);
 
     // 囚人を選択
     const handlePrisonerClick = useCallback((prisonerId: string) => {
         if (gameState.phase !== 'playing') return;
+        if (gameState.currentStage === 2 && isGuardBusy) return; // ロック
         setRepairMode(false);
         setSelectedPrisonerId(prev => prev === prisonerId ? null : prisonerId);
-    }, [gameState.phase]);
+    }, [gameState.phase, gameState.currentStage, isGuardBusy]);
 
     // 修理モード切替
     const handleRepairClick = useCallback(() => {
         if (gameState.phase !== 'playing') return;
+        if (gameState.currentStage === 2 && isGuardBusy) return; // ロック
         setSelectedPrisonerId(null);
         setRepairMode(prev => !prev);
-    }, [gameState.phase]);
+    }, [gameState.phase, gameState.currentStage, isGuardBusy]);
 
     // ステージ選択・ゲーム開始
     const handleStartGame = useCallback((stage: number) => {
@@ -189,6 +252,8 @@ function App() {
         setSelectedPrisonerId(null);
         setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
         setRepairMode(false);
+        setGuardPos('idle');
+        setIsGuardBusy(false);
         // 最初は必ずDayフェーズから始まるのでDay BGMを再生
         startDayBGM();
     }, []);
@@ -198,6 +263,8 @@ function App() {
         setGameState(createInitialState());
         setSelectedPrisonerId(null);
         setRepairMode(false);
+        setGuardPos('idle');
+        setIsGuardBusy(false);
         stopBGM();
     }, []);
 
@@ -207,6 +274,8 @@ function App() {
         setSelectedPrisonerId(null);
         setSpawnTimer(GAME_CONFIG.PRISONER_SPAWN_INTERVAL);
         setRepairMode(false);
+        setGuardPos('idle');
+        setIsGuardBusy(false);
         startDayBGM();
     }, [gameState.currentStage]);
 
@@ -258,6 +327,35 @@ function App() {
             {lang === 'ja' ? 'EN' : 'JA'}
         </button>
     );
+
+    // --- 看守アニメーションの位置計算 ---
+    const [guardCoords, setGuardCoords] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        if (gameState.phase !== 'playing' || gameState.currentStage !== 2) return;
+
+        const container = containerRef.current;
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+
+        let targetEl: HTMLElement | null = null;
+        if (guardPos === 'idle') {
+            targetEl = idleRef.current;
+        } else if (guardPos === 'waiting') {
+            targetEl = waitingRef.current;
+        } else if (typeof guardPos === 'number') {
+            targetEl = roomRefs.current[guardPos];
+        }
+
+        if (targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            // ターゲット要素の中央付近にオフセット計算
+            setGuardCoords({
+                x: rect.left - containerRect.left + rect.width / 2,
+                y: rect.top - containerRect.top + rect.height / 2
+            });
+        }
+    }, [guardPos, gameState.phase, gameState.currentStage]);
 
     // タイトル画面
     if (gameState.phase === 'title') {
@@ -366,14 +464,35 @@ function App() {
     }
 
     return (
-        <div className="game-container">
+        <div className="game-container" ref={containerRef}>
+            {/* 看守スプライト (STAGE 2) */}
+            {gameState.currentStage === 2 && (
+                <div
+                    className="guard-sprite"
+                    style={{
+                        transform: `translate(${guardCoords.x}px, ${guardCoords.y}px)`,
+                    }}
+                >
+                    <div className="guard-icon">👮</div>
+                    {gameState.guard?.carrying && (
+                        <div className="carried-prisoner">
+                            <img
+                                src={getPrisonerImage(gameState.guard.carrying.type)}
+                                alt={getPrisonerIcon(gameState.guard.carrying.type)}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* ヘッダー（巡回ボタン統合） */}
             <header className="game-header">
                 <div className="header-left">
                     <button
+                        ref={idleRef}
                         className={`patrol-btn ${repairMode ? 'active' : ''}`}
                         onClick={handleRepairClick}
-                        disabled={gameState.inspectionsRemaining <= 0}
+                        disabled={gameState.inspectionsRemaining <= 0 || isGuardBusy}
                         title={repairMode ? t('patrolHintOn') : `${t('patrolsRemaining')}: ${gameState.inspectionsRemaining}`}
                     >
                         👮 {t('patrolLabel')}{repairMode ? ' ON' : ''} ({gameState.inspectionsRemaining}/{GAME_CONFIG.REPAIRS_PER_DAY})
@@ -408,6 +527,7 @@ function App() {
 
             {/* 待機エリア */}
             <section
+                ref={waitingRef}
                 className="waiting-area"
                 style={{
                     border: gameState.waitingPrisoners.length >= GAME_CONFIG.MAX_WAITING_PRISONERS ? '3px solid #e74c3c' : undefined,
@@ -462,7 +582,7 @@ function App() {
 
             {/* 部屋グリッド */}
             <main className="prison-grid">
-                {gameState.rooms.map(room => {
+                {gameState.rooms.map((room, i) => {
                     const maxEscape = Math.max(0, ...room.prisoners.map(p => p.escapeProgress));
                     const hasIncompatible = roomHasIncompatiblePair(room);
                     const isFull = room.prisoners.length >= room.capacity;
@@ -472,6 +592,7 @@ function App() {
                     return (
                         <div
                             key={room.id}
+                            ref={el => roomRefs.current[i] = el}
                             className={`room ${room.hasMoonlight ? 'moonlight' : ''} ${room.hasMoonlight && gameState.timeOfDay === 'night' ? 'night' : ''} ${isValidTarget ? 'valid-target' : ''} ${isInvalidTarget ? 'invalid-target' : ''}`}
                             onClick={() => handleRoomClick(room.id)}
                             style={{
